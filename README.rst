@@ -20,12 +20,12 @@
    :target: http://simbench.readthedocs.io/
    :alt: docs
 
-.. image:: https://travis-ci.org/e2nIEE/simbench.svg?branch=master
-   :target: https://travis-ci.org/e2nIEE/simbench/branches
+.. image:: https://travis-ci.org/SteffenMeinecke/simbench.svg?branch=master
+   :target: https://travis-ci.org/SteffenMeinecke/simbench/branches
    :alt: travis
 
-.. image:: https://codecov.io/gh/e2nIEE/simbench/branch/develop/graph/badge.svg
-   :target: https://codecov.io/github/e2nIEE/simbench?branch=master
+.. image:: https://codecov.io/gh/SteffenMeinecke/simbench/branch/develop/graph/badge.svg
+   :target: https://codecov.io/github/SteffenMeinecke/simbench?branch=master
    :alt: codecov
 
 .. image:: https://img.shields.io/badge/License-ODbL-brightgreen.svg
