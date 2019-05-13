@@ -2,6 +2,7 @@
 *~
 build/
 .pytest_cache/
+simbench.egg-info/
 dist/
 .cache/
 .idea

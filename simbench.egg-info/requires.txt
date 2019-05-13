@@ -1,6 +1,0 @@
-pandapower>=2.0
-
-[docs]
-numpydoc
-sphinx
-sphinx_rtd_theme
