@@ -1,0 +1,44 @@
+Metadata-Version: 2.1
+Name: simbench
+Version: 1.0
+Summary: Electrical Power System Benchmark Models
+Home-page: http://www.simbench.de/en
+Author: Steffen Meinecke
+Author-email: steffen.meinecke@uni-kassel.de
+License: odbl
+Description: .. image:: /pics/Logo_SimBench.svg
+        		:width: 250em
+        		:align: left
+        
+        .. |br| raw:: html
+        
+            <br />
+        
+        SimBench is a research project to create a "simulation database for uniform comparison of innovative solutions in the field of network analysis, network planning and operation", which was conducted for three and a half years from 1.11.2015 to 30.04.2019. It was part of the German Federal Government’s 6th Energy Research Program “Research for an Environmentally Friendly, Reliable and Affordable Energy Supply”. The project was carried out by the University of Kassel, the Fraunhofer IEE, the RWTH Aachen University and the Technical University of Dortmund in accordance with the authors mentioned above. The project, coordinated by the University of Kassel, was supported by the professional advisory from six German distribution network operators: DREWAG NETZ GmbH, Energie Netz Mitte GmbH, ENSO NETZ GmbH, Netze BW GmbH, Syna GmbH and Westnetz GmbH.
+        
+        The objective of the research project SimBench is the development of a benchmark data set to support research in grid planning and operation. SimBench Grid differs from other benchmark grids under the following key points:
+        - Consideration of a wide range of use cases during the development of data sets
+        - Provision of grid data for low voltage (LV), medium voltage (MV), high voltage (HV), extra high voltage (EHV) as well as design of data sets for a suitable interconnection of a grid among different voltage levels for cross-level simulations
+        - Ensuring highreproducibility and comparability by providing clearly assigned load and generation time series
+        - Validation of the suitability of the data sets with simulation, deliberately determined grid states including suitable dimensioning of grid assets
+        
+        
+        Change Log
+        =============
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: odbl License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Provides-Extra: docs
