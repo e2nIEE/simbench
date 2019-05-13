@@ -1,12 +1,9 @@
-.. |br| raw:: html
 
-    <br />
- 
-.. image:: /doc/pics/Logo_SimBench.svg
-		:width: 350em
-		:align: left
+.. image:: https://github.com/e2nIEE/simbench/blob/master/doc/pics/Logo_SimBench.svg
+   :target: https://www.simbench.net
+   :alt: logo
 
-|br|
+|
 
 .. image:: https://badge.fury.io/py/simbench.svg
    :target: https://pypi.python.org/pypi/simbench
