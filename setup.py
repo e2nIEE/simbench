@@ -10,7 +10,6 @@ classifiers=[
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: odbl License',
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
