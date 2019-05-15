@@ -4,6 +4,9 @@
 from setuptools import setup, find_packages
 import re
 
+with open('README.rst', 'rb') as f:
+    readme = f.read().decode('utf-8')
+
 classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
@@ -21,10 +24,11 @@ with open('.travis.yml', 'rb') as f:
 
 setup(
     name='simbench',
-    version='1.0',
+    version='1.0.0',
     author='Steffen Meinecke',
     author_email='steffen.meinecke@uni-kassel.de',
     description='Electrical Power System Benchmark Models',
+    long_description=readme,
     url='http://www.simbench.de/en',
     license='odbl',
     install_requires=["pandapower>=2.0"],
