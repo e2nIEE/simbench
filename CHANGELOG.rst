@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[1.0] - 2019-05-13
+[1.0.0] - 2019-05-15
 ----------------------
 
 - [ADDED] python code to utilize the SimBench dataset with pandapower
