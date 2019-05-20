@@ -11,6 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+autodoc_mock_imports = ['_tkinter']
+
 import os
 import sys
 
