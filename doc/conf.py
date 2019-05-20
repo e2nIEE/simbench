@@ -11,8 +11,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-autodoc_mock_imports = ['_tkinter']
-
 import os
 import sys
 
@@ -20,11 +18,12 @@ import sys
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
+autodoc_mock_imports = ['_tkinter']
 
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.0'
+#needs_sphinx = '1.3'
 
 sys.path.append(os.path.abspath(".."))
 sys.path.append(os.path.abspath(".\\_themes"))
