@@ -22,7 +22,15 @@ The easiest way to install simbench is through pip:
 
 1. Open a command prompt (e.g. start–>cmd on windows systems)
 
-2. Install simbench by running:
+2. If you already work with the pandapower development version from GitHub, but did not yet register it to pip:
+
+    a. Navigate your command prompt into your pandapower folder (with the command cd <folder>). 
+
+    b. Register pandapower to pip, to not install pandapower a second time, via typing:
+
+    :code:`pip install -e .`
+
+3. Install simbench by running:
 
     :code:`pip install simbench`
 
@@ -46,7 +54,7 @@ If you don't have internet access on your system or don't want to use pip for so
 Development Version
 ----------------------------
 
-To install the latest development version of simbench from github, simply follow these steps:
+To install the latest version of simbench from github, simply follow these steps:
 
 1. Download and install git.
 
@@ -56,17 +64,11 @@ To install the latest development version of simbench from github, simply follow
 
      :code:`git clone https://github.com/e2nIEE/simbench.git`
 
-4. Navigate inside the repository and check out the develop branch:
-
-     :code:`cd simbench`
-
-     :code:`git checkout develop`
-
-5. Open a command prompt (cmd or anaconda command prompt) and navigate to the folder where the simbench files are located. Run:
+4. Open a command prompt (cmd or anaconda command prompt) and navigate to the folder where the simbench files are located. Run:
 
      :code:`pip install -e .`
 
-6. This registers your local simbench installation with pip.
+     This registers your local simbench installation with pip.
 
 
 Test your installation

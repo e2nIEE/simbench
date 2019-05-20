@@ -17,7 +17,7 @@ SimBench Grid differs from other benchmark grids under the following key points:
 
 - Consideration of a wide range of use cases during the development of data sets
 - Provision of grid data for low voltage, medium voltage, high voltage, extra high voltage as well as design of data sets for a suitable interconnection of a grid among different voltage levels for cross-level simulations
-- Ensuring highreproducibility and comparability by providing clearly assigned load and generation time series
+- Ensuring high reproducibility and comparability by providing clearly assigned load and generation time series
 - Validation of the suitability of the data sets with simulation, deliberately determined grid states including suitable dimensioning of grid assets
 
 The focus of the data sets is Germany. If possible, the SimBench data set should also be applicable in an international context.
