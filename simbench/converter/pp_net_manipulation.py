@@ -47,8 +47,8 @@ def _extend_pandapower_net_columns(net):
     add_columns["gen"] = ['dspf', 'phys_type', 'profile'] + add_columns["gen"]
     add_columns["sgen"] = ['dspf', 'phys_type', 'profile'] + add_columns["sgen"]
     add_columns["load"] = ['profile'] + add_columns["load"]
-    add_columns["storage"] = ['profile', "efficiency_percent", "self-discharge_percent_per_day",
-                              "resistance_ohm"] + add_columns["storage"]
+    add_columns["storage"] = ['profile', "efficiency_percent", "self-discharge_percent_per_day"] + \
+        add_columns["storage"]
     add_columns["line"] = ['max_loading_percent'] + add_columns["dcline"]
     add_columns["dcline"] = ['std_type', 'length_km', 'max_loading_percent'] + add_columns["dcline"]
     add_columns["trafo"] = ['max_loading_percent', 'autoTap', 'autoTapSide', 'autoTapSetp',

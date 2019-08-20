@@ -1,4 +1,4 @@
-id;node;type;profile;pStor;qStor;chargeLevel;sR;max_e_mwh;efficiency_percent;self-discharge_percent_per_day;pMin;pMax;qMin;qMax;subnet;voltLvl
+id;node;type;profile;pStor;qStor;chargeLevel;sR;eStore;etaStore;sdStore;pMin;pMax;qMin;qMax;subnet;voltLvl
 EHV Storage 5;EHV Bus 2484;Wind_Offshore_Storage;Storage_WP2_3%_e_MWh;0;0;0.5;1000;3;0.95;0.13;0;0;0;0;EHV1;1
 EHV Storage 6;EHV Bus 143;Storage;hv_mixed;-339.188;0;0.5;339.188;416.44;0.95;0.13;-339.188;0;-339.188;339.188;EHV1_HV1;1
 EHV Storage 7;EHV Bus 57;Storage;hv_mixed;-339.188;0;0.5;339.188;416.44;0.95;0.13;-339.188;0;-339.188;339.188;EHV1_HV1;1

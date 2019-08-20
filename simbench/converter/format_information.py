@@ -143,7 +143,7 @@ def all_columns():
                                   range(1, 6)] + ['Hydro1', 'Hydro2', 'Waste1', 'Waste2',
                                                   'Gas1', 'Gas2'],
         "Storage": ['id', 'node', 'type', 'profile', 'pStor', 'qStor', 'chargeLevel', 'sR',
-                    'max_e_mwh', 'efficiency_percent', 'self-discharge_percent_per_day',
+                    'eStore', 'etaStore', 'sdStore',
                     'pMin', 'pMax', 'qMin', 'qMax', 'subnet', 'voltLvl'],
         "StorageProfile": ['time', 'PV_Battery', 'E_Mobility'],
         "Substation": ['id', 'subnet', 'voltLvl'],
@@ -225,7 +225,7 @@ def _csv_pp_column_correspondings(tablename):
         # Storage
         ("eStore", "max_e_mwh", sb2pp_base()), ("etaStore", "efficiency_percent", None),
         ("sdStore", "self-discharge_percent_per_day", sb2pp_base()),
-        ("rStore", "resistance_ohm", None), ("chargeLevel", "soc_percent", 100),
+        ("chargeLevel", "soc_percent", 100),
         # NodePFResult
         ("vm", "vm_pu", None), ("va", "va_degree", None),
         # TransformerType

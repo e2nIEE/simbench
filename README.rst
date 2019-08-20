@@ -39,7 +39,7 @@ The objective of the research project SimBench is the development of a benchmark
 
 - Consideration of a wide range of use cases during the development of data sets
 - Provision of grid data for low voltage (LV), medium voltage (MV), high voltage (HV), extra high voltage (EHV) as well as design of data sets for a suitable interconnection of a grid among different voltage levels for cross-level simulations
-- Ensuring highreproducibility and comparability by providing clearly assigned load and generation time series
+- Ensuring high reproducibility and comparability by providing clearly assigned load and generation time series
 - Validation of the suitability of the data sets with simulation, deliberately determined grid states including suitable dimensioning of grid assets
 
 This repository provides data and code to use SimBench within the software pandapower (www.pandapower.org).

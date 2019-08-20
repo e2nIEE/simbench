@@ -445,6 +445,27 @@ def test_get_simbench_net(sb_codes=None, n=8, scenarios=None, input_path=None):
         _test_net_validity(net, sb_code_params, shortened, input_path=input_path)
 
 
+def aux_node_names_with_dupl_branches(csv_data):
+    lA = csv_data["Line"]["nodeA"]
+    lB = csv_data["Line"]["nodeB"]
+    tA = csv_data["Transformer"]["nodeHV"]
+    tB = csv_data["Transformer"]["nodeLV"]
+
+    all_branch_nodes = pd.concat([lA, lB, tA, tB], ignore_index=True)
+    dupl_branch_nodes = set(all_branch_nodes.loc[all_branch_nodes.duplicated()])
+    aux_nodes = csv_data["Node"]["id"].loc[csv_data["Node"]["type"] == "auxiliary"]
+
+    return sorted(dupl_branch_nodes & set(aux_nodes))
+
+
+def test_aux_nodes_without_multiple_connected_branches():
+    """ Test csv_data if there are auxiliary nodes with more than one connected branch element. """
+    for scenario in range(3):
+        csv_data = sb.read_csv_data(sb.complete_data_path(scenario), sep=";")
+        annwdb = aux_node_names_with_dupl_branches(csv_data)
+        assert not len(annwdb)
+
+
 if __name__ == '__main__':
     if 0:
         pytest.main([__file__, "-xs"])
@@ -454,6 +475,7 @@ if __name__ == '__main__':
 #        test_get_extracted_csv_data_from_dict(print_instead=True)
 #        test_generate_no_sw_variant()
 #        test_get_simbench_net()
-        test_get_simbench_net(sb_codes=sb.collect_all_simbench_codes(scenario=0))
+        test_get_simbench_net(sb_codes=sb.collect_all_simbench_codes(scenario=1))
+#        test_aux_nodes_without_multiple_connected_branches()
 
         pass
