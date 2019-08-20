@@ -7,6 +7,8 @@
 import numpy as np
 import pandas as pd
 from collections import OrderedDict
+from pandapower.timeseries import DFData
+from pandapower.control import ConstControl
 
 from simbench import csv_tablenames, idx_in_2nd_array, merge_dataframes
 
@@ -298,6 +300,55 @@ def get_absolute_values(net, profiles_instead_of_study_cases, **kwargs):
             del net[elm_col[0]]["loadcase_type"]
 
     return abs_val
+
+
+def apply_const_controllers(net, absolute_profiles_values):
+    """
+    Applys ConstControl instances to the net. As a result, one can easily run timeseries with given
+    power values of e.g. loads, sgens, storages or gens.
+
+    INPUT:
+        **net** - pandapower net
+
+        **absolute_profiles_values** - dict of Dataframes with absolute values for the profiles,
+            keys should be tuples of length 2 (element and parameter), DataFrame size is
+            timesteps x number of elements
+
+    """
+    n_time_steps = dict()
+    for (elm, param), values in absolute_profiles_values.items():
+        if values.shape[1]:
+
+            # check DataFrame shape[0] == time_steps
+            if elm in n_time_steps.keys():
+                if n_time_steps[elm] != values.shape[0]:
+                    logger.warning("There are two profiles for %ss which have different " % elm +
+                                   "amount of time steps.")
+            else:
+                n_time_steps[elm] = values.shape[0]
+
+            # check DataFrame shape[1] == net[elm].index
+            unknown_idx = values.columns.difference(net[elm].index)
+            if len(unknown_idx):
+                logger.warning("In absolute_profiles_values[%s][%s], " % (elm, param) +
+                               "there are indices additional & unknown to net[%s].index" % elm +
+                               str(["%i" % i for i in unknown_idx]))
+            missing_idx = net[elm].index.difference(values.columns)
+            if len(missing_idx):
+                logger.warning("In absolute_profiles_values[%s][%s], " % (elm, param) +
+                               "these indices are missing compared to net[%s].index" % elm +
+                               str(["%i" % i for i in missing_idx]))
+
+            # apply const controllers
+            idx = net[elm].index.intersection(values.columns)
+            ConstControl(net, element=elm, variable=param,
+                         element_index=idx, profile_name=idx,
+                         data_source=DFData(absolute_profiles_values[(elm, param)][idx]))
+
+    # compare all DataFrame shape[0] == time_steps
+    if len(set(n_time_steps.values())) > 1:
+        logger.warning("The profiles have different amount of time steps:")
+        logger.warning(n_time_steps)
 
 
 if __name__ == "__main__":
