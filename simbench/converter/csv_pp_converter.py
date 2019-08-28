@@ -386,7 +386,13 @@ def _convert_measurement(data):
         idx_line = data["Measurement"].index[data["Measurement"]["element"].isin(data[
             "Line"]["id"])].astype(int)
         idx_bus = data["Measurement"].index.difference(idx_line | idx_trafo).astype(int)
-        idx_bus = data["Measurement"].index.difference(idx_line | idx_trafo)
+        n_no_element2_info = data["Measurement"]["element"].isnull().sum()
+        if n_no_element2_info != len(idx_bus):
+            logger.warning("%i Measurement have no element2 info, but " % n_no_element2_info +
+                           "%i are assumed as bus measurements. " % len(idx_bus) +
+                           "Most likely there are line or " +
+                           "trafo names given in element2 which do not exist in the " +
+                           "csv_data[element] table.")
         data["Measurement"]["element_type"] = "bus"
         data["Measurement"]["element_type"].loc[idx_trafo] = "trafo"
         data["Measurement"]["element_type"].loc[idx_line] = "line"

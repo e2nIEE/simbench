@@ -1,9 +1,10 @@
 Change Log
 =============
 
-[1.0.1] - 2019-08-18
+[1.0.1] - 2019-08-28
 ----------------------
 
+- [FIXED] bug in "element2" column of measurement tables of the scenario 1 and 2 data at HV and MV connections
 - [FIXED] commercial MV grid connection to HV1 bug
 - [CHANGED] Storage.csv column names correction: max_e_mwh -> eStore, efficency_percent -> etaStore, self-discharge_percent_per_day -> sdStore
 - [REMOVED] converter: remove obsolte parameter resistance_ohm
