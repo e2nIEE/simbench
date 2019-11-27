@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[1.0.1] - 2019-08-28
+[1.0.1] - 2019-12-??
 ----------------------
 
 - [FIXED] bug in "element2" column of measurement tables of the scenario 1 and 2 data at HV and MV connections
