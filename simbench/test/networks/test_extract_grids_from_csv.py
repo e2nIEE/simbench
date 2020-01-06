@@ -283,6 +283,30 @@ def test_generate_no_sw_variant():
     assert pp.dataframes_equal(net.switch, net_orig.switch.loc[[6, 9, 10, 11, 13, 14]])
 
 
+def bus_groups_connected_by_switches(net):
+    """ Returns a list of sets of buses which are connected via switches. """
+    bus_groups = []
+    bbsw = net.switch.index[net.switch.et == "b"]
+    bbsw_buses = pd.concat([net.switch.bus.loc[bbsw], net.switch.element.loc[bbsw]])
+
+    used_idxs = []
+    for idx in bbsw_buses.index[~bbsw_buses.duplicated()]:
+
+        if idx not in used_idxs:
+            idxs = [idx]
+            len_idxs = 0
+            while len(idxs) > len_idxs:
+                len_idxs = len(idxs)
+                idxs = bbsw_buses.index[bbsw_buses.isin(bbsw_buses[idxs])]
+
+            used_idxs += list(idxs)
+            bus_groups.append(set(bbsw_buses[idxs]))
+
+    assert len(used_idxs) == len(bbsw_buses) == 2*len(set(used_idxs))  # otherwise this code is buggy
+
+    return bus_groups
+
+
 def _test_net_validity(net, sb_code_params, shortened, input_path=None):
     """ This function is to test validity of a simbench net. """
 
@@ -368,6 +392,11 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
 
     # bus_geodata
     assert net.bus.shape[0] == net.bus_geodata.shape[0]
+    # check_that_all_buses_connected_by_switches_have_same_geodata
+    for bus_group in bus_groups_connected_by_switches(net):
+        first_bus = list(bus_group)[0]
+        assert all(np.isclose(net.bus_geodata.x.loc[bus_group], net.bus_geodata.x.loc[first_bus]) &
+                   np.isclose(net.bus_geodata.y.loc[bus_group], net.bus_geodata.y.loc[first_bus]))
 
     # --- test data content
     # substation
@@ -475,7 +504,7 @@ if __name__ == '__main__':
 #        test_get_extracted_csv_data_from_dict(print_instead=True)
 #        test_generate_no_sw_variant()
 #        test_get_simbench_net()
-        test_get_simbench_net(sb_codes=sb.collect_all_simbench_codes(scenario=1))
+        test_get_simbench_net(sb_codes=sb.collect_all_simbench_codes(scenario=0)[::-1])
 #        test_aux_nodes_without_multiple_connected_branches()
 
         pass
