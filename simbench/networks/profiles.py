@@ -340,7 +340,7 @@ def apply_const_controllers(net, absolute_profiles_values):
                                str(["%i" % i for i in missing_idx]))
 
             # apply const controllers
-            idx = net[elm].index.intersection(values.columns)
+            idx = list(net[elm].index.intersection(values.columns))
             ConstControl(net, element=elm, variable=param,
                          element_index=idx, profile_name=idx,
                          data_source=DFData(absolute_profiles_values[(elm, param)][idx]))
