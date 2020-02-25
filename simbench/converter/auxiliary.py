@@ -205,7 +205,7 @@ def _get_unique_duplicated_dict(df, subset=None):
 
 
 def reindex_dict_dataframes(dataframes_dict):
-    """ Set new continous index starting at zero for every DataFrame in the dict. """
+    """ Set new continuous index starting at zero for every DataFrame in the dict. """
     for key in dataframes_dict.keys():
         if isinstance(dataframes_dict[key], pd.DataFrame) and key != "StudyCases":
             dataframes_dict[key].index = list(range(dataframes_dict[key].shape[0]))
