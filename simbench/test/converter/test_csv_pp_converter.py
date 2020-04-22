@@ -150,6 +150,7 @@ def test_example_simple():
     # --- adjust net appearance
     pp.drop_buses(net, [to_drop])
     del net["OPF_converged"]
+    net.load["type"] = np.nan
     del net_from_csv_data["substation"]
     del net_from_csv_data["profiles"]
     for key in net.keys():
