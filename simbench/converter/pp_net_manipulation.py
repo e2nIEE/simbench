@@ -265,7 +265,7 @@ def _replace_buses_connected_to_busbars(net, buses):
 
         if len(idx_sw_to_set):
             idx_sw_in_nonb = idx_in_2nd_array(bb_sw[X].loc[idx_sw_to_set].values,
-                                                 non_busbars.values)
+                                              non_busbars.values)
 
             trafos = non_busbars.index[idx_sw_in_nonb]
             new_buses = pd.concat([new_buses, pd.Series(bb_sw[Y].loc[idx_sw_to_set].values,
@@ -274,7 +274,6 @@ def _replace_buses_connected_to_busbars(net, buses):
     new_buses = pd.concat([buses.loc[~pd.Series(buses.index).isin(new_buses.index).values],
                            new_buses])
     return new_buses
-
 
 
 def _add_vm_va_setpoints_to_buses(net):
@@ -309,7 +308,8 @@ def _add_vm_va_setpoints_to_buses(net):
                               index=net[elm].index[autotap_trafos])
             buses = _replace_buses_connected_to_busbars(net, buses)
         no_vm = pd.isnull(net.bus.loc[buses, "vmSetp"]).values
-        net.bus.loc[buses.loc[no_vm], "vmSetp"] = net[elm][param].values[net[elm][param].index[buses.index[no_vm]]]
+        net.bus.loc[buses.loc[no_vm], "vmSetp"] = net[elm][param].values[net[elm][param].index[
+            buses.index[no_vm]]]
         if sum(~no_vm):
             logger.debug("At buses " + str(list(buses.loc[~no_vm])) + " %s " % elm +
                          "have a vm setpoint which is not considered, since another element " +
@@ -388,11 +388,11 @@ def replace_branch_switches(net, reserved_aux_node_names=None):
             idx_b_sw].values
         # is_first_bus_type == hv_bus resp. from_bus
         pos_in_aux_buses = idx_in_2nd_array(np.array(idx_b_sw[is_first_bus_type]),
-                                               np.array(idx_t_sw | idx_l_sw))
+                                            np.array(idx_t_sw | idx_l_sw))
         net[branch][bus_types[0]].loc[idx_elm[is_first_bus_type]] = aux_buses[pos_in_aux_buses]
         # ~is_first_bus_type == lv_bus resp. to_bus
         pos_in_aux_buses = idx_in_2nd_array(np.array(idx_b_sw[~is_first_bus_type]),
-                                               np.array(idx_t_sw | idx_l_sw))
+                                            np.array(idx_t_sw | idx_l_sw))
         net[branch][bus_types[1]].loc[idx_elm[~is_first_bus_type]] = aux_buses[pos_in_aux_buses]
 
     # --- replace switch element by new auxiliary nodes
@@ -432,7 +432,7 @@ def create_branch_switches(net):
             current_branch_bus_types_aux_buses = aux_bus_df["aux_buses"][aux_buses_are_cbbtb].values
             aux_bus_df["element"].loc[aux_buses_are_cbbtb] = current_branch_bus_type_buses.index[
                 idx_in_2nd_array(current_branch_bus_types_aux_buses,
-                                    current_branch_bus_type_buses.values)]  # requirement: only one
+                                 current_branch_bus_type_buses.values)]  # requirement: only one
             # switch per aux bus
             aux_bus_df["et"].loc[aux_buses_are_cbbtb] = branch[0]
 

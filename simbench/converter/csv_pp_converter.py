@@ -207,7 +207,7 @@ def pp2csv(net1, path, export_pp_std_types=False, sep=';', exclude_table=set(), 
 
     # --- export the grid data dict DataFrames to csv files
     write2csv(path, csv_data, mode=mode, sep=sep, float_format='%g',
-                 keys=set(csv_data.keys())-exclude_table, keep=keep, nrows=nrows)
+              keys=set(csv_data.keys())-exclude_table, keep=keep, nrows=nrows)
 
     if aux_nodes_are_reserved:
         return reserved_aux_node_names
@@ -602,7 +602,7 @@ def _multi_parameter_determination(data):
         data["switch"]["closed"] = data["switch"]["closed"].astype(int)
         # trafo type
         data["std_types"]["trafo"]["pCu"] = data["std_types"]["trafo"].vkr_percent * data[
-            "std_types"]["trafo"].sn_mva *1e3 / 100
+            "std_types"]["trafo"].sn_mva * 1e3 / 100
         tapable = (data["std_types"]["trafo"].tap_min != data["std_types"]["trafo"].tap_neutral) | \
             (data["std_types"]["trafo"].tap_max != data["std_types"]["trafo"].tap_neutral)
         data["std_types"]["trafo"]["tapable"] = tapable.astype(int)
@@ -610,7 +610,7 @@ def _multi_parameter_determination(data):
         # trafo3w type
         for vkr, sn, pCu in zip(vkr_3w, sn_3w, pCu_3w):
             data["std_types"]["trafo3w"][pCu] = data["std_types"]["trafo3w"][vkr] * data[
-                "std_types"]["trafo3w"][sn] *1e3 / 100
+                "std_types"]["trafo3w"][sn] * 1e3 / 100
     else:
         # switch
         data["Switch"]["cond"] = data["Switch"]["cond"].astype(bool)
@@ -841,8 +841,8 @@ def _copy_data(input_data, output_data):
                                 set(input_data[corr_str].columns))
             if version.parse(pd.__version__) >= version.parse("0.23.0"):
                 output_data[output_name] = pd.concat([output_data[output_name], input_data[
-                    corr_str][cols_to_copy]], ignore_index=True, sort=False).reindex(columns=output_data[
-                        output_name].columns)
+                    corr_str][cols_to_copy]], ignore_index=True, sort=False).reindex(
+                    columns=output_data[output_name].columns)
             elif version.parse(pd.__version__) >= version.parse("0.21.0"):
                 output_data[output_name] = pd.concat([output_data[output_name], input_data[
                     corr_str][cols_to_copy]], ignore_index=True).reindex(columns=output_data[

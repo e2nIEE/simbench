@@ -107,7 +107,8 @@ def profiles_are_missing(net, return_as_bool=True):
         else:
             return_[profile_type] = get_missing_profiles(net, profile_type)
     if return_as_bool:
-        return bool(len(set.union(*dismantle_dict_values_to_list(return_)).difference(set([np.nan]))))
+        return bool(len(set.union(*dismantle_dict_values_to_list(return_)).difference(
+                set([np.nan]))))
     else:
         return return_
 

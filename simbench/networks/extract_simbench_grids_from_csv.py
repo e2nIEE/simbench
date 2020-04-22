@@ -11,7 +11,7 @@ from copy import deepcopy
 import pandapower as pp
 
 from simbench import sb_dir
-from simbench.networks.simbench_code import *
+from simbench.networks.simbench_code import get_simbench_code_and_parameters
 from simbench.networks.profiles import filter_unapplied_profiles
 from simbench.networks.loadcases import filter_loadcases
 from simbench import csv_data2pp, read_csv_data, csv_tablenames, idx_in_2nd_array, \

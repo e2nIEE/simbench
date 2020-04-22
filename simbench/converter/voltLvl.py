@@ -103,14 +103,14 @@ def _voltlvl_idx(net, element, voltage_level, branch_bus=None, vn_kv_limits=[145
                                         index=trafos.index)
             lines = net[element]["element"][is_line_type]
             line_isin_Idx_bus = Series(line_isin_Idx_bus.loc[lines.values].values,
-                                        index=lines.index)
+                                       index=lines.index)
 
             isin_Idx_bus = (bus_isin_Idx_bus & is_bus_type) | trafo_isin_Idx_bus | line_isin_Idx_bus
         else:
             raise KeyError("For element=='measurement', branch_bus must contain the branch_bus " +
                            "for trafo and line, e.g. branch_bus=['hv_bus', 'from_bus'].")
 
-    elif branch_bus in net[element].columns:  #  all other elements than measurement
+    elif branch_bus in net[element].columns:  # all other elements than measurement
         isin_Idx_bus = net[element][branch_bus].isin(Idx_bus)
 
     else:

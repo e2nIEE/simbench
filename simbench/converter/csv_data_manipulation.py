@@ -60,13 +60,12 @@ def _ensure_single_switch_at_aux_node_and_copy_vm_setp(csv_data, new_type_name="
         # get indices to copy the setpoint
         node_names_dupl_sw = csv_data["Node"].id.loc[idx_nodes_dupl_sw]
         X_in_dupl = csv_data["Switch"][X].isin(node_names_dupl_sw)
-        idx_Y = idx_in_2nd_array(csv_data["Switch"][Y].values,
-                                    csv_data["Node"]["id"].values)
+        idx_Y = idx_in_2nd_array(csv_data["Switch"][Y].values, csv_data["Node"]["id"].values)
         Y_is_busbar = csv_data["Node"].loc[idx_Y].type.str.contains("busbar").values
         idx_in_sw_to_set = csv_data["Switch"].index[X_in_dupl & Y_is_busbar]
 
         idx_X = idx_in_2nd_array(csv_data["Switch"][X].loc[idx_in_sw_to_set].values,
-                                    csv_data["Node"]["id"].values)
+                                 csv_data["Node"]["id"].values)
         idx_Y = idx_Y[X_in_dupl & Y_is_busbar]
 
         # only use the first setpoint for nodes which are connected to multiple busbars
@@ -146,7 +145,7 @@ def _add_phys_type_and_vm_va_setpoints_to_element_tables(csv_data):
     # --- Line (for dclines)
     for bus_type, param in zip(["nodeA", "nodeB"], ['vm_from_pu', 'vm_to_pu']):
         idx_node = idx_in_2nd_array(csv_data["Line"][bus_type].values,
-                                       csv_data["Node"].id.values)
+                                    csv_data["Node"].id.values)
         csv_data["Line"][param] = csv_data["Node"].vmSetp[idx_node].values
 
     # --- Transformer, Transformer3W
@@ -160,7 +159,7 @@ def _extend_coordinates_to_node_shape(csv_data):
     bus_geodata = pd.DataFrame([], index=csv_data["Node"].index, columns=["x", "y"])
     with_coord = ~csv_data["Node"]["coordID"].isnull()
     idx_in_coordID = idx_in_2nd_array(csv_data["Node"]["coordID"].loc[with_coord].values,
-                                         csv_data["Coordinates"]["id"].values)
+                                      csv_data["Coordinates"]["id"].values)
     bus_geodata.loc[with_coord, ["x", "y"]] = csv_data["Coordinates"].loc[idx_in_coordID,
                                                                           ["x", "y"]].values
     csv_data["Coordinates"] = bus_geodata
