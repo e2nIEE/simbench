@@ -70,15 +70,41 @@ def _extend_pandapower_net_columns(net):
                            pp_profile_names()}
 
 
-def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line", "trafo"]):
-    """ Converts parallel branch elements into multiple branches in pandapower net or other way
-    around. """
+def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line", "trafo"],
+                              exclude_cols_from_parallel_finding=["name", "parallel"]):
+    """
+    Converts parallel branch elements into multiple branches in pandapower net or other way
+    around.
+
+    INPUT:
+        **net** - the pandapower net
+
+    OPTIONAL:
+        **multiple_entries** (bool, True) - whether multiple entries should exist after this
+            function
+
+        **elm_to_convert** (list, ["line", "trafo"]) - list of elements that entries should be
+            adapted
+
+        **exclude_cols_from_parallel_finding** (list, ["name", "parallel"]) - list of columns that
+            shoult be considered finding parallel branches using multiple_entries=False. Without
+            tuning this list, please be aware, that parallel branches may exist futheron due to
+            some (slightly differing column values, such as differences of some meters in the length
+            or additional data.
+
+    ATTENTION:
+        multiple_entries=False does not work for trafo3w.
+    """
     for element in elm_to_convert:  # in pp "trafo3w" currently is no parallel parameter
+
         # --- changes net[element].parallel to 1 and adds entries
         if multiple_entries:
             parallels = net[element].index[net[element].parallel > 1]
+
             while len(parallels):
+
                 n_elm = net[element].shape[0]
+
                 # add parallel elements
                 net[element].parallel.loc[parallels] -= 1
                 elm_to_append = net[element].loc[parallels]
@@ -93,10 +119,11 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                 net["res_"+element] = net["res_"+element].append(
                     pd.DataFrame(res_elm_to_append.values, columns=net["res_"+element].columns),
                     ignore_index=True)
+
                 # add parallel switches
                 for i, par in pd.Series(parallels).iteritems():
                     sw_to_append = net.switch.loc[(net.switch.element == par) & (
-                        net.switch.et == element[0])]  # do not work for trafo3w
+                        net.switch.et == element[0])]  # does not work for trafo3w
                     sw_to_append["element"] = n_elm + i
                     sw_to_append["name"] += "_" + str(num_par[i])
                     net["switch"] = net["switch"].append(
@@ -104,16 +131,33 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                             ignore_index=True)
                 # update parallels
                 parallels = net[element].index[net[element].parallel > 1]
+
         # --- changes net[element].parallel to >= 1 and drops entries
         else:
-            col2comp = list(set(net[element].columns) - {"name"})
-            parallels = net[element].loc[net[element][col2comp].duplicated()]
+            # order to_bus - from_bus indices to find parallel lines with e.g. 5->7 & 7->5
+            if element == "line":
+                branches = deepcopy(net[element])
+                swap = branches.from_bus.values > branches.to_bus.values
+                branches.from_bus.loc[swap] = net[element].to_bus.loc[swap]
+                branches.to_bus.loc[swap] = net[element].from_bus.loc[swap]
+            else:
+                branches = net[element]
+
+            # determine which branches are parallel resp. duplicated
+            col2comp = list(set(branches.columns) - set(exclude_cols_from_parallel_finding))
+            parallels = branches.loc[branches[col2comp].duplicated()]
+
+            # check for every parallel branch whether the switches differ from the orig (branch
+            # which is the first parallel/duplicated branch and remains in the data)
             for idx, elm in parallels.iterrows():
-                col2comp2 = list(set(elm.dropna().index) - {"name"})
-                orig = net[element].loc[(net[element][col2comp2] == elm[col2comp2]).all(axis=1)]
+                col2comp2 = list(set(elm.dropna().index) - set(exclude_cols_from_parallel_finding))
+                orig = branches.loc[(branches[col2comp2] == elm[col2comp2]).all(axis=1)]
                 orig = orig.loc[orig.index[0]]
+
                 # consider switches
-                bus_names = {"line": ["from_bus", "to_bus"], "trafo": ["hv_bus", "lv_bus"]}[element]
+                #  pandapower currently provides no switch information for trafo3w
+                bus_names = {"line": ["from_bus", "to_bus"], "trafo": ["hv_bus", "lv_bus"],
+                             "trafo3w": []}[element]
                 switches_differ = False
                 switch_dupl = []
                 for bn in bus_names:
@@ -121,7 +165,7 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                             net.switch.et == element[0]) & (net.switch.bus == elm[bn])]
                     sw_orig = net.switch.loc[(net.switch.element == orig.name) & (
                             net.switch.et == element[0]) & (net.switch.bus == orig[bn])]
-                    if sw_dupl.shape[0]:
+                    if sw_dupl.shape[0] or sw_orig.shape[0]:
                         if sw_dupl.shape[0] == sw_orig.shape[0]:
                             if (sw_dupl.closed.iloc[0] != sw_orig.closed.iloc[0]) | \
                                ((sw_dupl.type.iloc[0] != sw_orig.type.iloc[0]) & (
@@ -132,12 +176,13 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                                 switch_dupl.append(sw_dupl.index[0])
                         else:
                             switches_differ = True
-                if switches_differ:
-                    continue
-                # drop duplicated elements
-                net[element].parallel.loc[orig.name] += elm.parallel
-                net[element].drop(idx, inplace=True)
-                net["switch"].drop(switch_dupl, inplace=True)
+
+                # drop parallel/duplicated branches if the switches do not differ
+                if not switches_differ:
+                    # drop duplicated elements
+                    net[element].parallel.loc[orig.name] += elm.parallel
+                    net[element].drop(idx, inplace=True)
+                    net["switch"].drop(switch_dupl, inplace=True)
 
 
 def merge_busbar_coordinates(net):

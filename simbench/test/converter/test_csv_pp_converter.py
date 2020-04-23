@@ -38,6 +38,90 @@ test_output_folder_path = os.path.join(simbench_converter_test_path, "test_netwo
 __author__ = 'smeinecke'
 
 
+def test_convert_to_parallel_branches():
+    # create test grid
+    net = pp.create_empty_network()
+    pp.create_bus(net, 110)
+    pp.create_buses(net, 2, 20)
+
+    # --- transformers & corresponding switches
+    pp.create_transformer(net, 0, 1, "40 MVA 110/20 kV", name="Trafo 1")
+    pp.create_switch(net, 1, 0, "t", name="Tr-Switch 1")
+    # only name changed:
+    pp.create_transformer(net, 0, 1, "40 MVA 110/20 kV", name="Trafo 2")
+    pp.create_switch(net, 1, 1, "t", name="Tr-Switch 2")
+    # only max_loading changed:
+    pp.create_transformer(net, 0, 1, "40 MVA 110/20 kV", name="Trafo 1", max_loading_percent=50)
+    pp.create_switch(net, 1, 2, "t", name="Tr-Switch 1")
+    # only switch position changed:
+    pp.create_transformer(net, 0, 1, "40 MVA 110/20 kV", name="Trafo 1")
+    pp.create_switch(net, 1, 3, "t", closed=False, name="Tr-Switch 1")
+    # only switch missing:
+    pp.create_transformer(net, 0, 1, "40 MVA 110/20 kV", name="Trafo 1")
+    # only name and std_type changed:
+    pp.create_transformer(net, 0, 1, "25 MVA 110/20 kV", name="Trafo 3")
+    pp.create_switch(net, 1, 5, "t", name="Tr-Switch 3")
+    # only name changed and switch added:
+    pp.create_transformer(net, 0, 1, "40 MVA 110/20 kV", name="Trafo 4")
+    pp.create_switch(net, 1, 6, "t", name="Tr-Switch 4a")
+    pp.create_switch(net, 0, 6, "t", name="Tr-Switch 4b")
+    # only name and parallel changed:
+    pp.create_transformer(net, 0, 1, "40 MVA 110/20 kV", name="Trafo 5", parallel=2)
+    pp.create_switch(net, 1, 7, "t", name="Tr-Switch 5")
+
+    # --- lines & corresponding switches
+    pp.create_line(net, 1, 2, 1.11, "94-AL1/15-ST1A 20.0", name="Line 1")
+    pp.create_switch(net, 2, 0, "l", name="L-Switch 1")
+    # only name changed:
+    pp.create_line(net, 1, 2, 1.11, "94-AL1/15-ST1A 20.0", name="Line 2")
+    pp.create_switch(net, 2, 1, "l", name="L-Switch 2")
+    # only max_loading changed:
+    pp.create_line(net, 1, 2, 1.11, "94-AL1/15-ST1A 20.0", name="Line 1", max_loading_percent=50)
+    pp.create_switch(net, 2, 2, "l", name="L-Switch 1")
+    # only switch position changed:
+    pp.create_line(net, 1, 2, 1.11, "94-AL1/15-ST1A 20.0", name="Line 1")
+    pp.create_switch(net, 2, 3, "l", closed=False, name="L-Switch 1")
+    # only switch missing:
+    pp.create_line(net, 1, 2, 1.11, "94-AL1/15-ST1A 20.0", name="Line 1")
+    # only name and std_type changed:
+    pp.create_line(net, 1, 2, 1.11, "48-AL1/8-ST1A 20.0", name="Line 3")
+    pp.create_switch(net, 2, 5, "l", name="L-Switch 3")
+    # only name changed and switch added:
+    pp.create_line(net, 1, 2, 1.11, "94-AL1/15-ST1A 20.0", name="Line 4")
+    pp.create_switch(net, 2, 6, "l", name="L-Switch 4a")
+    pp.create_switch(net, 1, 6, "l", name="L-Switch 4b")
+    # only name and parallel changed:
+    pp.create_line(net, 1, 2, 1.11, "94-AL1/15-ST1A 20.0", name="Line 5", parallel=2)
+    pp.create_switch(net, 2, 7, "l", name="L-Switch 5")
+    # only name and from_bus <-> to_bus changed:
+    pp.create_line(net, 2, 1, 1.11, "94-AL1/15-ST1A 20.0", name="Line 6")
+    pp.create_switch(net, 2, 8, "l", name="L-Switch 6")
+
+    net1 = deepcopy(net)
+    net2 = deepcopy(net)
+    net3 = deepcopy(net)
+
+    # complete
+    convert_parallel_branches(net1, multiple_entries=False)
+    for elm in ["trafo", "line"]:
+        assert sorted(net1[elm].index) == [0, 2, 3, 4, 5, 6]
+    assert net1["trafo"].parallel.to_list() == [4] + [1]*5
+    assert net1["line"].parallel.to_list() == [5] + [1]*5
+
+    # only line
+    convert_parallel_branches(net2, multiple_entries=False, elm_to_convert=["line"])
+    assert pp.dataframes_equal(net2.line, net1.line)
+    assert pp.dataframes_equal(net2.trafo, net.trafo)
+
+    # only exclude "max_loading_percent"
+    convert_parallel_branches(net3, multiple_entries=False, exclude_cols_from_parallel_finding=[
+                                      "name", "parallel", "max_loading_percent"])
+    for elm in ["trafo", "line"]:
+        assert sorted(net3[elm].index) == [0, 3, 4, 5, 6]
+    assert net3["trafo"].parallel.to_list() == [5] + [1]*4
+    assert net3["line"].parallel.to_list() == [6] + [1]*4
+
+
 def test_convert_parallel_branches():
     # create test grid
     net = pp.create_empty_network()
@@ -181,6 +265,7 @@ if __name__ == "__main__":
     if 0:
         pytest.main([__file__, "-xs"])
     else:
+#        test_convert_to_parallel_branches()
 #        test_convert_parallel_branches()
 #        test_test_network()
 #        test_example_simple()
