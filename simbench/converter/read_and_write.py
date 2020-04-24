@@ -87,15 +87,20 @@ def read_csv_data(path, sep, tablename=None, nrows=None):
     for i in tablename:
         nrows = None if "Profile" not in i else nrows
         try:
-            csv_tables[i] = pd.read_csv(os.path.join(path, "%s.csv" % i), sep=sep, nrows=nrows,
-                                        index_col=False)
-            _correct_float_to_object_dtype(csv_tables[i], i)  # possible but not necessary
+            csv_tables[i] = pd.read_csv(
+                    os.path.join(path, "%s.csv" % i), sep=sep, nrows=nrows, index_col=False,
+                    dtype=dict(zip(get_columns("Node"), get_dtypes("Node"))))
         except (FileNotFoundError, OSError):
             if i in ['Node', 'Load']:
                 logger.error(i + ".csv cannot be read from csv file. " +
                              "Possibly the path %s does not exist." % path)
             csv_tables[i] = _init_csv_table(i)
             csv_tables[i] = csv_tables[i][get_columns(i)]
+        except ValueError:
+            csv_tables[i] = pd.read_csv(
+                os.path.join(path, "%s.csv" % i), sep=sep, nrows=nrows,
+                index_col=False, low_memory=False)
+            _correct_float_to_object_dtype(csv_tables[i], i)  # possible but not necessary
     if not return_dataframe:
         return csv_tables
     else:
