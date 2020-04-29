@@ -353,8 +353,8 @@ def _add_vm_va_setpoints_to_buses(net):
                               index=net[elm].index[autotap_trafos])
             buses = _replace_buses_connected_to_busbars(net, buses)
         no_vm = pd.isnull(net.bus.loc[buses, "vmSetp"]).values
-        net.bus.loc[buses.loc[no_vm], "vmSetp"] = net[elm][param].values[net[elm][param].index[
-            buses.index[no_vm]]]
+        net.bus.loc[buses.loc[no_vm], "vmSetp"] = net[elm][param].loc[
+            buses.index[no_vm]].values
         if sum(~no_vm):
             logger.debug("At buses " + str(list(buses.loc[~no_vm])) + " %s " % elm +
                          "have a vm setpoint which is not considered, since another element " +
