@@ -21,8 +21,25 @@ def complete_grid_sb_code(scenario):
 def collect_all_simbench_codes(version=1, hv_level=None, lv_level=None, hv_type=None, lv_grid=None,
                                scenario=None, breaker_rep=None, all_data=True, shortened=False,
                                **kwargs):
-    """ Returns a list of all possible SimBench Codes, considering given fixed sb_code_parameters.
-        **kwargs are ignored.
+    """
+    Returns a list of all possible SimBench Codes, considering given fixed sb_code_parameters.
+    **kwargs are ignored.
+
+    EXAMPLE:
+        all_codes = collect_all_simbench_codes()
+
+        single_zone_codes = collect_all_simbench_codes(lv_level="", all_data=False)
+
+        all_data_codes = collect_all_simbench_codes(hv_level="")
+
+        mv_grids_without_switch_and_lv = collect_all_simbench_codes(
+                hv_level="MV", lv_level="", breaker_rep=False)
+
+        urban_hv_grid_scenario1_codes = collect_all_simbench_codes(
+                hv_level="HV", hv_type="urban", scenario=1)
+
+        rural_and_urban_mv_grid_scenario1_codes = sb.collect_all_simbench_codes(
+                hv_level="MV", lv_level="", hv_type=["rural", "urban"], scenario=1, all_data=False)
     """
     pos_hv_level = ["EHV", "HV", "MV", "LV"]
     pos_lv_level = ["HV", "MV", "LV", ""]
@@ -131,9 +148,4 @@ def get_simbench_code_and_parameters(sb_code_info):
 
 
 if __name__ == '__main__':
-    if 1:
-        all_ = collect_all_simbench_codes()
-        sb_code_parameters = get_parameters_from_simbench_code(all_[8])
-        sb_code = get_simbench_code_from_parameters(sb_code_parameters)
-    else:
-        pass
+    pass

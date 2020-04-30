@@ -161,7 +161,6 @@ def test_convert_parallel_branches():
     assert net1.switch.shape[0] == 5
 
 
-@pytest.mark.skipif(igraph_installed == False, reason="requires igraph")
 def test_test_network():
     net = csv2pp(test_network_path, no_generic_coord=True)
 
@@ -196,7 +195,6 @@ def test_test_network():
     assert all_eq
 
 
-@pytest.mark.skipif(igraph_installed == False, reason="requires igraph")
 def test_example_simple():
     net = example_simple()
 
@@ -224,7 +222,8 @@ def test_example_simple():
         avoid_duplicates_in_column(net, i, 'name')
 
     # --- create geodata
-    create_generic_coordinates(net)
+    net.bus_geodata["x"] = [0, 1, 2, 3, 4, 5, 5, 3.63]
+    net.bus_geodata["y"] = [0]*5+[-5, 5, 2.33]
     merge_busbar_coordinates(net)
 
     # --- convert
@@ -265,8 +264,8 @@ if __name__ == "__main__":
     if 0:
         pytest.main([__file__, "-xs"])
     else:
-#        test_convert_to_parallel_branches()
-#        test_convert_parallel_branches()
-#        test_test_network()
-#        test_example_simple()
+        test_convert_to_parallel_branches()
+        test_convert_parallel_branches()
+        test_test_network()
+        test_example_simple()
         pass

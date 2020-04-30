@@ -57,18 +57,22 @@ def _net_to_test():
     pp.create_switch(net, lv_buses[2], l0, "l")
     pp.create_switch(net, lv_buses[3], l1, "l")
 
-    create_generic_coordinates(net)
+#    create_generic_coordinates(net)
+    net.bus_geodata["x"] = [1, 2, 1, 3, 0, 1, 2]
+    net.bus_geodata["y"] = [0, 1, -1, 0, 0, 1, 0]
+    net.bus_geodata.index = list(range(6))+[8]
 
     return net
 
 
-@pytest.mark.skipif(igraph_installed==False, reason="requires igraph")
 def test_branch_switch_changes():
     """ Tests replace_branch_switches() and create_branch_switches(). """
     net_orig = _net_to_test()
 
     net1 = deepcopy(net_orig)
     replace_branch_switches(net1)
+    net1.bus_geodata= net1.bus_geodata.astype({coord: net_orig.bus_geodata.dtypes[
+        coord] for coord in ["x", "y"]})
 
     assert net_orig.switch.shape == net1.switch.shape
     assert (net_orig.switch.bus == net1.switch.bus).all()

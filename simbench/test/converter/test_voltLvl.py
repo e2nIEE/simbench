@@ -6,6 +6,7 @@
 
 import pytest
 from numpy import array
+import pandapower as pp
 import pandapower.networks as pn
 
 import simbench as sb
@@ -22,6 +23,15 @@ def test_convert_voltlvl_names():
 
 def test_voltlvl_idx():
     net = pn.example_multivoltage()
+    # add measurements
+    pp.create_measurement(net, "v", "bus", 1.03, 0.3, net.bus.index[7])  # 380 kV
+    pp.create_measurement(net, "v", "bus", 1.03, 0.3, net.bus.index[40])  # 10 kV
+    pp.create_measurement(net, "i", "trafo", 0.23, 0.03, net.trafo.index[-1], "hv")  # 10 kV
+    pp.create_measurement(net, "p", "trafo", 0.33, 0.03, net.trafo.index[0], "lv")  # 110 kV
+    pp.create_measurement(net, "i", "line", 0.23, 0.03, net.line.index[-1], "to")  # 0.4 kV
+    pp.create_measurement(net, "q", "line", 0.33, 0.03, net.line.index[0], "from")  # 110 kV
+
+    # checking voltlvl_idx()
     hv_and_mv_buses = list(range(16, 45))
     assert hv_and_mv_buses == sb.voltlvl_idx(net, "bus", 4)
     assert hv_and_mv_buses == sb.voltlvl_idx(net, "bus", ["HV-MV"])
@@ -45,6 +55,16 @@ def test_voltlvl_idx():
     assert mvlv_trafos == sb.voltlvl_idx(net, "trafo", 5, branch_bus="hv_bus")
     lv_loads = list(range(13, 25))
     assert lv_loads == sb.voltlvl_idx(net, "load", 7)
+    m1 = sb.voltlvl_idx(net, "measurement", [1])
+    m3 = sb.voltlvl_idx(net, "measurement", 3)
+    m5 = sb.voltlvl_idx(net, "measurement", 5)
+    m7 = sb.voltlvl_idx(net, "measurement", 7)
+    assert m1 == [0]
+    assert m3 == [3, 5]
+    assert m5 == [1, 2]
+    assert m7 == [4]
+    assert len(net.measurement.index) == len(m1+m3+m5+m7)
+    assert set(net.measurement.index) == set(m1) | set(m3) | set(m5) | set(m7)
 
 
 def test_get_voltlvl():

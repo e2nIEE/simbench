@@ -84,33 +84,21 @@ def _voltlvl_idx(net, element, voltage_level, branch_bus=None, vn_kv_limits=[145
                 break
 
     if element == "measurement":
-        if hasattr(branch_bus, "__iter__") and len(branch_bus):
-            branch_bus_Series = Series(branch_bus)
-            trafo_branch_bus = branch_bus_Series[branch_bus_Series.isin(net["trafo"].columns)].iloc[
-                0]
-            line_branch_bus = branch_bus_Series[branch_bus_Series.isin(net["line"].columns)].iloc[0]
+        measurement_buses = Series(index=net.measurement.index)
+        # bus
+        bool_ = net.measurement.element_type == "bus"
+        measurement_buses.loc[bool_] = net.measurement.element.loc[bool_]
+        # line and trafo
+        for branch, side in zip(["line", "line", "trafo", "trafo"], ["from", "to", "hv", "lv"]):
+            bus = side + "_bus"
+            bool1 = net.measurement.element_type == branch
+            bool2 = net.measurement.side == side
+            measurement_buses.loc[bool1 & bool2] = net[branch][bus].loc[net.measurement.element.loc[
+                bool1 & bool2]].values
+        measurement_buses = measurement_buses.astype(int)
+        isin_Idx_bus = measurement_buses.isin(Idx_bus)
 
-            bus_isin_Idx_bus = net[element]["element"].isin(Idx_bus)
-            trafo_isin_Idx_bus = net["trafo"][trafo_branch_bus].isin(Idx_bus)
-            line_isin_Idx_bus = net["line"][line_branch_bus].isin(Idx_bus)
-
-            is_bus_type = net[element]["element_type"] == "bus"
-            is_trafo_type = net[element]["element_type"] == "trafo"
-            is_line_type = net[element]["element_type"] == "line"
-
-            trafos = net[element]["element"][is_trafo_type]
-            trafo_isin_Idx_bus = Series(trafo_isin_Idx_bus.loc[trafos.values].values,
-                                        index=trafos.index)
-            lines = net[element]["element"][is_line_type]
-            line_isin_Idx_bus = Series(line_isin_Idx_bus.loc[lines.values].values,
-                                       index=lines.index)
-
-            isin_Idx_bus = (bus_isin_Idx_bus & is_bus_type) | trafo_isin_Idx_bus | line_isin_Idx_bus
-        else:
-            raise KeyError("For element=='measurement', branch_bus must contain the branch_bus " +
-                           "for trafo and line, e.g. branch_bus=['hv_bus', 'from_bus'].")
-
-    elif branch_bus in net[element].columns:  # all other elements than measurement
+    elif branch_bus in net[element].columns:  # all other elements than measurement and bus
         isin_Idx_bus = net[element][branch_bus].isin(Idx_bus)
 
     else:
@@ -133,9 +121,11 @@ def voltlvl_idx(net, element, voltage_levels, branch_bus=None, vn_kv_limits=[145
         hvmv_trafos = voltlvl_idx(net, "trafo", "HV", branch_bus="hv_bus")
         hvmv_trafos = voltlvl_idx(net, "trafo", "MV", branch_bus="lv_bus")
         ehvhv_and_hvmv_trafos = voltlvl_idx(net, "trafo", 2, branch_bus="hv_bus")
+        ehvhv_and_hvmv_trafos = voltlvl_idx(net, "trafo", [1, 3], branch_bus="hv_bus")
         ehvhv_and_hvmv_trafos = voltlvl_idx(net, "trafo", 4, branch_bus="lv_bus")
+        ehvhv_and_hvmv_trafos = voltlvl_idx(net, "trafo", [3, 5], branch_bus="lv_bus")
         ehvhv_trafos = voltlvl_idx(net, "trafo", 2, branch_bus="lv_bus")
-        ehv_measurements = voltlvl_idx(net, "measurement", 1, branch_bus=["hv_bus", "from_bus"])
+        ehv_measurements = voltlvl_idx(net, "measurement", "EHV")
     """
     if not net[element].shape[0]:
         return []
