@@ -263,7 +263,7 @@ def get_absolute_values(net, profiles_instead_of_study_cases, **kwargs):
     else:  # use predefined study cases
 
         # --- voltage set point
-        slack_base_case = pd.DataFrame(net["ext_grid"]["vm_pu"].values,
+        slack_base_case = pd.DataFrame(net["ext_grid"]["vm_pu"].values.reshape(1, -1),
                                        columns=net["ext_grid"].index, index=["bc"])
         abs_val[("ext_grid", "vm_pu")] = pd.DataFrame(net.loadcases["Slack_vm"].values.reshape(
             -1, 1).repeat(net["ext_grid"].shape[0], axis=1), columns=net["ext_grid"].index,
