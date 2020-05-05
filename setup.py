@@ -31,7 +31,7 @@ setup(
     long_description=readme,
     url='http://www.simbench.de/en',
     license='odbl',
-    install_requires=["pandapower>=2.0"],
+    install_requires=["pandapower>=2.2"],
     extras_require = {"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme"]},
     packages=find_packages(),
     include_package_data=True,

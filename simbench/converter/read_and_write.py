@@ -89,7 +89,7 @@ def read_csv_data(path, sep, tablename=None, nrows=None):
         try:
             csv_tables[i] = pd.read_csv(
                     os.path.join(path, "%s.csv" % i), sep=sep, nrows=nrows, index_col=False,
-                    dtype=dict(zip(get_columns("Node"), get_dtypes("Node"))))
+                    dtype=dict(zip(get_columns(i), get_dtypes(i))))
         except (FileNotFoundError, OSError):
             if i in ['Node', 'Load']:
                 logger.error(i + ".csv cannot be read from csv file. " +

@@ -252,8 +252,8 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
             if not np.allclose(net[i]["scaling"].values, 1):
                 scaling_is_not_1 += [i]
     if len(scaling_is_not_1):
-        logger.warning("In elements " + str(scaling_is_not_1) + "'scaling' differs from 1, which" +
-                       " is not converted.")
+        logger.warning("In elements " + str(scaling_is_not_1) + ", the parameter 'scaling' " +
+                       "differs from 1, which is not converted.")
     # log min_e_mwh
     if not np.allclose(net.storage["min_e_mwh"].dropna().values, 0.):
         logger.warning("Storage parameter 'min_e_mwh' is not converted but differs from 0.")
@@ -492,7 +492,7 @@ def _csv_types_to_pp2(net):
             sort_column=False)
         if element_type == "line":
             _assume_cs_ohl_line_type(merged_type_table)
-        data = {idx: dict(merged_type_table.loc[idx]) for idx in merged_type_table.index}
+        data = merged_type_table.to_dict("index")
         pp.create_std_types(net, data, element_type)
 
         # --- load type data into element tables
