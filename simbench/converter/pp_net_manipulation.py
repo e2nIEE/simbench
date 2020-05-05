@@ -81,16 +81,16 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
 
     OPTIONAL:
         **multiple_entries** (bool, True) - whether multiple entries should exist after this
-            function
+        function
 
         **elm_to_convert** (list, ["line", "trafo"]) - list of elements that entries should be
-            adapted
+        adapted
 
         **exclude_cols_from_parallel_finding** (list, ["name", "parallel"]) - list of columns that
-            shoult be considered finding parallel branches using multiple_entries=False. Without
-            tuning this list, please be aware, that parallel branches may exist futheron due to
-            some (slightly differing column values, such as differences of some meters in the length
-            or additional data.
+        shoult be considered finding parallel branches using multiple_entries=False. Without
+        tuning this list, please be aware, that parallel branches may exist futheron due to
+        some (slightly differing column values, such as differences of some meters in the length
+        or additional data.
 
     ATTENTION:
         multiple_entries=False does not work for trafo3w.

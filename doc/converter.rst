@@ -16,7 +16,7 @@ Besides the grid, profiles and study cases data, this repository provides the co
 
 |br|
 
-The converter functions use internal functions which converters between a pandapower net object and a dict object with SimBench data format.
+The converter functions use internal functions which converts between a pandapower net object and a dict object with SimBench data format.
 This internal functions can be used if no writing or reading from and to csv files is desired.
 
 |br|

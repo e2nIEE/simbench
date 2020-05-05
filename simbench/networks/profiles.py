@@ -141,27 +141,27 @@ def get_absolute_profiles_from_relative_profiles(
         **net** (pandapowerNet) - pandapower net
 
         **element** (str) - element type for which absolute profiles are calculated. Possible are
-            "load", "gen", "sgen" or "storage".
+        "load", "gen", "sgen" or "storage".
 
         **multiplying_column** (str) - column name within net[element].columns which should be
-            multiplied with the relative profiles. Usual multiply_columns are 'p_mw' or 'q_mvar'.
-            Additional Feature: If multiplying_column is not a string, the relative profiles are not
-            multiplied with net[element][multiplying_column] but with 'multiplying_column' itself.
+        multiplied with the relative profiles. Usual multiply_columns are 'p_mw' or 'q_mvar'.
+        Additional Feature: If multiplying_column is not a string, the relative profiles are not
+        multiplied with net[element][multiplying_column] but with 'multiplying_column' itself.
 
     OPTIONAL:
         **relative_profiles** (DataFrame, None) - DataFrame of relative profiles as input. If None,
-            net["profiles"] is considered.
+        net["profiles"] is considered.
 
         **profile_column** (str, "profile") - Name of the column which contains information about
-            which element is assigned to which profile. In SimBench grids, this information is
-            given in the column "profile". For that reason, 'profile' is the default.
+        which element is assigned to which profile. In SimBench grids, this information is
+        given in the column "profile". For that reason, 'profile' is the default.
 
         **profile_suffix** (str, None) - For the case that different profiles are given for p and q,
-            these can be distinguished by a suffix. For loads this can be "_pload" and "_qload",
-            which will be automatically assumed, if profile_suffix is None.
+        these can be distinguished by a suffix. For loads this can be "_pload" and "_qload",
+        which will be automatically assumed, if profile_suffix is None.
 
         **time_as_index** (bool, False) - If True, the returned DataFrame has
-            relative_profiles["time"] as index. If False, relative_profiles.index is used.
+        relative_profiles["time"] as index. If False, relative_profiles.index is used.
 
         ****kwargs** - key word arguments for merge_dataframes()
 
@@ -242,15 +242,15 @@ def get_absolute_values(net, profiles_instead_of_study_cases, **kwargs):
         **net** (pandapowerNet) - pandapower net
 
         **profiles_instead_of_study_cases** (bool) - Flag to decide whether profiles or loadcases
-            should be considered.
+        should be considered.
 
         ****kwargs** - key word arguments for get_absolute_profiles_from_relative_profiles()
-            (especially for merge_dataframes())
+        (especially for merge_dataframes())
 
     OUTPUT:
         **abs_val** (dict) - absolute values calculated from relative scaling factors and maximum
-            active or reactive powers. The keys of this dict are tuples consisting of element and
-            parameter. The values are DataFrames with absolute power values.
+        active or reactive powers. The keys of this dict are tuples consisting of element and
+        parameter. The values are DataFrames with absolute power values.
     """
     abs_val = dict()
 
@@ -312,8 +312,8 @@ def apply_const_controllers(net, absolute_profiles_values):
         **net** - pandapower net
 
         **absolute_profiles_values** - dict of Dataframes with absolute values for the profiles,
-            keys should be tuples of length 2 (element and parameter), DataFrame size is
-            timesteps x number of elements
+        keys should be tuples of length 2 (element and parameter), DataFrame size is
+        timesteps x number of elements
 
     """
     n_time_steps = dict()

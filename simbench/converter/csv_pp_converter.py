@@ -54,13 +54,13 @@ def csv2pp(path, sep=';', add_folder_name=None, nrows=None, no_generic_coord=Fal
 
     OPTIONAL:
         **add_folder_name** (str, None) - name of the subfolder in path, in which the csv data is
-            located.
+        located.
 
         **nrows** (int, None) - number of rows to be read for profiles. If None, all rows will be
-            read.
+        read.
 
         **no_generic_coord** (bool, False) - if True, no generic coordinates are created in case of
-            missing geodata.
+        missing geodata.
 
     OUTPUT:
         **net** (pandapowerNet) - the created pandapower net from csv files data
@@ -147,37 +147,37 @@ def pp2csv(net1, path, export_pp_std_types=False, sep=';', exclude_table=set(), 
 
     OPTIONAL:
         **export_pp_std_types** (False, boolean) - defines whether unused pandapower standard types
-            should be stored to simbench csv format
+        should be stored to simbench csv format
 
         **sep** (';', str) - gives the seperator of the csv files
 
         **exclude_table** ({}, set) - set of table names that should not be converted to csv files.
-            Overwrites the possibly given list export_results.
+        Overwrites the possibly given list export_results.
 
         **nrows** (int, None) - number of rows to be write to csv for profiles. If None, all rows
-            will be written.
+        will be written.
 
         **mode** ('append', str) - If csv files already exists in the given path, they can
-            be appended if mode is 'a' or 'append_unique' they can be replaced if
-            mode is 'w'. In case of 'append_unique', only data with unique name, voltLvl and
-            subnet are kept (which is controlled by parameter keep).
+        be appended if mode is 'a' or 'append_unique' they can be replaced if
+        mode is 'w'. In case of 'append_unique', only data with unique name, voltLvl and
+        subnet are kept (which is controlled by parameter keep).
 
         **keep** ('last', str) - decides which duplicated data is kept in case of
-            mode == "append_unique"
+        mode == "append_unique"
 
         **drop_inactive_elements** (True, boolean) - Per default, only suppliable, active elements
-            get converted to csv files. The user may change this behaviour by setting
-            drop_inactive_elements to False.
+        get converted to csv files. The user may change this behaviour by setting
+        drop_inactive_elements to False.
 
         **round_qLoad_by_voltLvl** (False, boolean) - If True, qLoad is rounded to variating
-            accurancy: EHV: 1kVAr, HV: 100VAr, MV: 100VAr, LV: 1VAr"
+        accurancy: EHV: 1kVAr, HV: 100VAr, MV: 100VAr, LV: 1VAr"
 
         **reserved_aux_node_names** (None, set) - set of strings which are not allowed to be used as
-            auxiliary node names
+        auxiliary node names
 
     OUTPUT:
         **reserved_aux_node_names** (set) - reserved_aux_node_names appended by created auxiliary
-            node names. Is only returned if given as input
+        node names. Is only returned if given as input
 
     EXAMPLE:
         import simbench as sb

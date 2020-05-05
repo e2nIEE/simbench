@@ -70,10 +70,10 @@ def read_csv_data(path, sep, tablename=None, nrows=None):
 
     OPTIONAL:
         **tablename** (str or list of str, None) - name(s) of csv table(s) to be read. If tablename
-            is None, all csv_tablenames are read.
+        is None, all csv_tablenames are read.
 
         **nrows** (int, None) - number of rows to be read for load, sgen and storage profiles. If
-            None, all rows will be read.
+        None, all rows will be read.
     """
     csv_tables = dict()
     if isinstance(tablename, str):
@@ -115,28 +115,27 @@ def write2csv(path, data, mode="w", sep=";", float_format='%g', keys=None, keep=
         **path** (str) - path to folder with csv data files
 
         **data** (dict) - dict of DataFrames containing the grid data which should be written to csv
-            files
+        files
 
     OPTIONAL:
         **mode** (str, "w") - writing mode. "w" for writing, "a" for appending and "append_unique"
-            for append only unique data are common to this function.
+        for append only unique data are common to this function.
 
         **sep** (str, ";") - seperator of csv files
 
         **float_format** (str, "%g") - format of how to write floats into csv files
 
         **keys** (list, None) - list of keys, which should be considered for writing. If None, all
-            keys of data will be considered.
+        keys of data will be considered.
 
         **keep** (str, "last") - Flag to set, which duplicated named data will be kept. Only
-            relevant in case of mode == "append_unique"
+        relevant in case of mode == "append_unique"
 
         **must_store** (list, None) - list of element tables that always will be stored, if they are
-            in 'data', even if they are empty. If 'must_store' is None,
-            'Node', 'Load'] is assumed.
+        in 'data', even if they are empty. If 'must_store' is None, 'Node', 'Load'] is assumed.
 
         **nrows** (int, None) - number of rows to be write to csv for Load, RES and Storage
-            profiles. If None, all rows will be written.
+        profiles. If None, all rows will be written.
     """
     if mode not in ['append_unique', 'a', 'w']:
         mode = "w"

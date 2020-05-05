@@ -75,23 +75,23 @@ def merge_dataframes(dfs, keep="first", sort_index=True, sort_column=True, colum
 
     OPTIONAL:
         **keep** (str, "first") - Flag to decide which data are kept in case of duplicated
-            indices - first, last or all duplicated data.
+        indices - first, last or all duplicated data.
 
         **sort_index** (bool, True) - If True, the indices of the returning DataFrame will be
-            sorted. If False, the indices and columns will be in order of the original DataFrames.
+        sorted. If False, the indices and columns will be in order of the original DataFrames.
 
         **sort_column** (bool, True) - If True, the indices of the returning DataFrame will be
-            sorted. If False, the indices and columns will be in order of the original DataFrames.
+        sorted. If False, the indices and columns will be in order of the original DataFrames.
 
         **column_to_sort** (-, None) - If given, 'column_to_sort' must be a column name occuring in
-            both DataFrames. The returning DataFrame will be sorted by this column. The input
-            indices get lost.
+        both DataFrames. The returning DataFrame will be sorted by this column. The input
+        indices get lost.
 
         **index_time_str** (str, None) - If given, the indices or the 'column_to_sort' if given will
-            be sorted in datetime order.
+        be sorted in datetime order.
 
         ****kwargs** - Keyword arguments for pandas.concat() except axis, such as sort, join,
-            join_axes, ignore_index, keys. 'sort' can overwrite 'sort_index' and 'sort_column'.
+        join_axes, ignore_index, keys. 'sort' can overwrite 'sort_index' and 'sort_column'.
     """
     if "axis" in kwargs:
         if kwargs["axis"] != 0:
@@ -250,13 +250,13 @@ def append_str_by_underline_count(str_series, append_only_duplicates=False, coun
         **counting_start** (int, 1) - Integer to start appending with
 
         **reserved_strings** (iterable, None) - strings which are not allowed in str_series and must
-            be appended.
+        be appended.
 
     OUTPUT:
         **appended_strings** (Series with string values) - appended strings
 
         **reserved_strings** (set) - all reserved_strings from input and all strings which were
-            appended
+        appended
     """
     # --- initalizations
     # ensure only unique values in reserved_strings:

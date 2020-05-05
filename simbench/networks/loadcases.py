@@ -41,7 +41,7 @@ def filter_loadcases(data, factors=None):
 
     OPTIONAL:
         **factors** (DataFrame, None) - factors of Study Cases. If None, the factors are taken from
-            data.
+        data.
     """
     if factors is None:
         factors = data.loadcases if _is_pp_type(data) else data["StudyCases"]

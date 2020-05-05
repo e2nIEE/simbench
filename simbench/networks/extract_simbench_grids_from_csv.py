@@ -167,11 +167,11 @@ def _extract_csv_table_by_subnet(csv_table, tablename, relevant_subnets, bus_bus
             **tablename** (str)
 
             **relevant_subnets** (tuple) - first item is hv_subnet (str), second lv_subnets (list of
-                strings)
+            strings)
 
         OPTIONAL:
             **bus_bus_switches** (set, {}) - indices of bus-bus-switches in csv DataFrame.
-                Only used if tablename == "Switch".
+            Only used if tablename == "Switch".
     """
     hv_subnets = ensure_iterability(relevant_subnets[0])
     lv_subnets = relevant_subnets[1]
@@ -338,12 +338,13 @@ def get_simbench_net(sb_code_info, input_path=None):
 
     INPUT:
         sb_code_info (str or list) - simbench code which defines which simbench grid is requested,
-            e.g. '1-MVLV-urban-all-0-sw' requests a grid with the urban MV grid and all connected
-            LV grids, both of SimBench version 1, scenario zero and with full switch representation.
+        e.g. '1-MVLV-urban-all-0-sw' requests a grid with the urban MV grid and all connected
+        LV grids, both of SimBench version 1, scenario zero and with full switch representation.
 
     OPTIONAL:
         input_path (path) - option to change the path to all simbench grid csv files. However, a
-            change should not be necessary.
+        change should not be necessary.
+
     OUTPUT:
         net (pandapowerNet)
 
