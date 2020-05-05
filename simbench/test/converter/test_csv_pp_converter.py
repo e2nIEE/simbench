@@ -105,8 +105,8 @@ def test_convert_to_parallel_branches():
     convert_parallel_branches(net1, multiple_entries=False)
     for elm in ["trafo", "line"]:
         assert sorted(net1[elm].index) == [0, 2, 3, 4, 5, 6]
-    assert net1["trafo"].parallel.to_list() == [4] + [1]*5
-    assert net1["line"].parallel.to_list() == [5] + [1]*5
+    assert list(net1["trafo"].parallel.values) == [4] + [1]*5
+    assert list(net1["line"].parallel.values) == [5] + [1]*5
 
     # only line
     convert_parallel_branches(net2, multiple_entries=False, elm_to_convert=["line"])
@@ -118,8 +118,8 @@ def test_convert_to_parallel_branches():
                                       "name", "parallel", "max_loading_percent"])
     for elm in ["trafo", "line"]:
         assert sorted(net3[elm].index) == [0, 3, 4, 5, 6]
-    assert net3["trafo"].parallel.to_list() == [5] + [1]*4
-    assert net3["line"].parallel.to_list() == [6] + [1]*4
+    assert list(net3["trafo"].parallel.values) == [5] + [1]*4
+    assert list(net3["line"].parallel.values) == [6] + [1]*4
 
 
 def test_convert_parallel_branches():

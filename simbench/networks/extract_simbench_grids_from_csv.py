@@ -337,13 +337,14 @@ def get_simbench_net(sb_code_info, input_path=None):
     codes.
 
     INPUT:
-        sb_code_info (str or list) - simbench code which defines which simbench grid is requested,
-        e.g. '1-MVLV-urban-all-0-sw' requests a grid with the urban MV grid and all connected
-        LV grids, both of SimBench version 1, scenario zero and with full switch representation.
+        **sb_code_info** (str or list) - simbench code which defines which simbench grid is
+        requested, e.g. '1-MVLV-urban-all-0-sw' requests a grid with the urban MV grid and all
+        connected LV grids, both of SimBench version 1, scenario zero and with full switch
+        representation.
 
     OPTIONAL:
-        input_path (path) - option to change the path to all simbench grid csv files. However, a
-        change should not be necessary.
+        **input_path** (path) - option to change the path to all simbench grid csv files. However,
+        a change should not be necessary.
 
     OUTPUT:
         net (pandapowerNet)
