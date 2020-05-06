@@ -4,7 +4,7 @@
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 __author__ = "smeinecke"
 
 import os

@@ -7,9 +7,7 @@ Installation Guide
 Installing Python
 ----------------------------
 
-simbench is tested with Python 3.4, 3.5, 3.6 and 3.7. We recommend the Anaconda Distribution, which provides a Python distribution that already includes a lot of modules for scientific computing that are needed. Simply download and install the newest version of Anaconda and you are all set to run simbench.
-
-Of course it is also possible to use simbench with other distributions besides Anaconda. It is however important that the following package is included:
+simbench is tested with Python 3.5, 3.6 and 3.7. We recommend the Anaconda Distribution, which provides a Python distribution that already includes a lot of modules for scientific computing that are needed. Of course it is also possible to use simbench with other distributions besides Anaconda. Anyway, it is important that the following package is included:
 
 - pandapower
 
