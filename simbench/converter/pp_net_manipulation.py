@@ -514,7 +514,7 @@ def _add_coordID(net, highest_existing_coordinate_number):
 
     # detect duplicated coordinates
     uniq_dupl_dict = get_unique_duplicated_dict(net.bus_geodata)
-    uniq = list(uniq_dupl_dict.keys())
+    uniq = sorted(uniq_dupl_dict.keys())
 
     # add "voltLvl" column to net.bus_geodata
     net.bus_geodata["voltLvl"] = net.bus["voltLvl"]
