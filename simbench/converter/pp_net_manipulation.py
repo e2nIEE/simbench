@@ -490,7 +490,7 @@ def create_branch_switches(net):
 
     # replace auxiliary buses in switch table by branch elements
     for col in ["et", "element"]:
-        net.switch[col].loc[aux_bus_df["idx_switch"]] = aux_bus_df[col].values
+        net.switch[col].loc[aux_bus_df["idx_switch"]] = np.array(aux_bus_df[col].values, dtype=int)
 
     # drop all auxiliary buses
     net.bus.drop(aux_bus_df["aux_buses"], inplace=True)

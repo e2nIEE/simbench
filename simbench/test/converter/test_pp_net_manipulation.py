@@ -8,19 +8,12 @@ import pytest
 from copy import deepcopy
 import pandas as pd
 import pandapower as pp
-from pandapower.plotting import create_generic_coordinates
 from simbench.converter import replace_branch_switches, create_branch_switches
 
 try:
     import pplog as logging
 except ImportError:
     import logging
-
-try:
-    import igraph
-    igraph_installed = True
-except ImportError:
-    igraph_installed = False
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +64,7 @@ def test_branch_switch_changes():
 
     net1 = deepcopy(net_orig)
     replace_branch_switches(net1)
-    net1.bus_geodata= net1.bus_geodata.astype({coord: net_orig.bus_geodata.dtypes[
+    net1.bus_geodata = net1.bus_geodata.astype({coord: net_orig.bus_geodata.dtypes[
         coord] for coord in ["x", "y"]})
 
     assert net_orig.switch.shape == net1.switch.shape
@@ -93,5 +86,5 @@ if __name__ == "__main__":
     if 0:
         pytest.main(["test_pp_net_manipulation.py", "-xs"])
     else:
-#        test_branch_switch_changes()
+        test_branch_switch_changes()
         pass

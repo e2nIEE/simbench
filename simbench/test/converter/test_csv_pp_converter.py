@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 import pandapower as pp
 from pandapower.networks import example_simple
-from pandapower.plotting import create_generic_coordinates
 
 from simbench import sb_dir
 from simbench.converter import csv2pp, csv_data2pp, pp2csv, pp2csv_data, \
@@ -22,12 +21,6 @@ try:
     import pplog as logging
 except ImportError:
     import logging
-
-try:
-    import igraph
-    igraph_installed = True
-except ImportError:
-    igraph_installed = False
 
 logger = logging.getLogger(__name__)
 
@@ -181,8 +174,6 @@ def test_test_network():
 
     all_eq = True
     for tablename in csv_orig.keys():
-        if "TransformerType" == tablename:
-            print()
         try:
             eq = pp.dataframes_equal(csv_orig[tablename], csv_exported[tablename])
             if not eq:
