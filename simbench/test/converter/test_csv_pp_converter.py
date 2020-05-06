@@ -175,10 +175,14 @@ def test_test_network():
     all_eq = True
     for tablename in csv_orig.keys():
         try:
-            eq = pp.dataframes_equal(csv_orig[tablename], csv_exported[tablename])
+            eq = pp.dataframes_equal(csv_orig[tablename], csv_exported[tablename], tol=1e-7)
             if not eq:
                 logger.error("csv_orig['%s'] and csv_exported['%s'] differ." % (tablename,
                                                                                 tablename))
+                logger.error(csv_orig[tablename].head())
+                logger.error(csv_exported[tablename].head())
+                logger.error(csv_orig[tablename].dtypes)
+                logger.error(csv_exported[tablename].dtypes)
         except ValueError:
             eq = False
             logger.error("dataframes_equal did not work for %s." % tablename)
@@ -247,7 +251,7 @@ def test_example_simple():
                 except:
                     logger.error("dtype adjustment of %s failed." % key)
 
-    eq = pp.nets_equal(net, net_from_csv_data, check_only_results=False, exclude_elms=None)
+    eq = pp.nets_equal(net, net_from_csv_data, tol=1e-7)
     assert eq
 
 

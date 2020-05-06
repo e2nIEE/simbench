@@ -79,7 +79,7 @@ def test_branch_switch_changes():
     net2 = deepcopy(net1)
     create_branch_switches(net2)
 
-    assert pp.nets_equal(net_orig, net2)
+    assert pp.nets_equal(net_orig, net2, tol=1e-7)
 
 
 if __name__ == "__main__":
