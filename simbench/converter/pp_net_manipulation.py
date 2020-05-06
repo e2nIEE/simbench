@@ -489,8 +489,9 @@ def create_branch_switches(net):
         logger.error("Auxiliary bus replacement fails.")
 
     # replace auxiliary buses in switch table by branch elements
-    for col in ["et", "element"]:
-        net.switch[col].loc[aux_bus_df["idx_switch"]] = np.array(aux_bus_df[col].values, dtype=int)
+    net.switch["et"].loc[aux_bus_df["idx_switch"]] = aux_bus_df["et"].values
+    net.switch["element"].loc[aux_bus_df["idx_switch"]] = np.array(
+        aux_bus_df["element"].values, dtype=int)
 
     # drop all auxiliary buses
     net.bus.drop(aux_bus_df["aux_buses"], inplace=True)
