@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[1.1.0] - 2020-05-05
+[1.1.0] - 2020-05-07
 ----------------------
 
 - [FIXED] bug in "element2" column of measurement tables of the scenario 1 and 2 data at HV and MV connections
