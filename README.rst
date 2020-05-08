@@ -13,9 +13,9 @@
    :target: https://pypi.python.org/pypi/simbench
    :alt: versions
 
-.. image:: https://readthedocs.org/projects/simbench/badge/
-   :target: http://simbench.readthedocs.io/
-   :alt: docs
+.. image:: https://readthedocs.org/projects/simbench/badge/?version=stable
+   :target: http://simbench.readthedocs.io/?badge=stable
+   :alt: Documentation Status
 
 .. image:: https://travis-ci.org/e2nIEE/simbench.svg?branch=master
    :target: https://travis-ci.org/e2nIEE/simbench/branches
