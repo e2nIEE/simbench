@@ -1,6 +1,11 @@
 Change Log
 =============
 
+[develop]
+----------------------
+
+- [FIXED] PowerPlantProfiles: add missing hour at time change
+
 [1.1.0] - 2020-05-07
 ----------------------
 
