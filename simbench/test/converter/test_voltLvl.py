@@ -67,6 +67,30 @@ def test_voltlvl_idx():
     assert set(net.measurement.index) == set(m1) | set(m3) | set(m5) | set(m7)
 
 
+def test_all_voltlvl_idx():
+    net = pn.example_simple()
+
+    lvl_dicts = sb.all_voltlvl_idx(net)
+
+    elms = set()
+    for elm in pp.pp_elements():
+        if net[elm].shape[0]:
+            elms |= {elm}
+            idxs = set()
+            for _, idx in lvl_dicts[elm].items():
+                idxs |= idx
+            assert set(net[elm].index) == idxs
+    assert elms == set(lvl_dicts.keys())
+
+    elms = ["bus"]
+    lvl_dicts = sb.all_voltlvl_idx(net, elms=elms)
+    assert list(lvl_dicts.keys()) == elms
+
+    lvl_dicts = sb.all_voltlvl_idx(net, elms=["bus", "trafo3w"], include_empty_elms_dicts=True)
+    assert not bool(net.trafo3w.shape[0])
+    assert "trafo3w" in lvl_dicts.keys()
+
+
 def test_get_voltlvl():
     input1 = [146, 145, 144, 61, 60, 59, 2, 1, 0.8]
     input2 = 0.4
@@ -81,4 +105,5 @@ if __name__ == "__main__":
 #        test_convert_voltlvl_names()
 #        test_voltlvl_idx()
 #        test_get_voltlvl()
+        test_all_voltlvl_idx()
         pass

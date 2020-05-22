@@ -6,7 +6,7 @@
 
 import numpy as np
 from pandas import Series
-from pandapower import element_bus_tuples
+from pandapower import element_bus_tuples, pp_elements
 
 __author__ = "smeinecke"
 
@@ -139,6 +139,62 @@ def voltlvl_idx(net, element, voltage_levels, branch_bus=None, vn_kv_limits=[145
             Idx += _voltlvl_idx(net, element, voltage_level, branch_bus=branch_bus,
                                 vn_kv_limits=vn_kv_limits)
         return Idx
+
+
+def all_voltlvl_idx(net, elms=None, include_empty_elms_dicts=False):
+    """
+    Wrapper function of voltlvl_idx() to receive dicts for every element in 'elms' which include
+    a set of indices (the dicts values) to every voltage level (the dicts keys).
+
+    INPUT:
+        **net** - the pandapower net
+
+    OPTIONAL:
+        **elms** (iterable) - names of elements which should be considered. If None, all pandapower
+        elements are considered.
+
+        include_empty_elms_dicts (bool, False) - If True, dicts of elements will also be consiered
+        if they are empty
+
+    EXAMPLE:
+        lvl_dicts = all_voltlvl_idx(net, ["bus"])
+        print(lvl_dicts["bus"][3])  # could print a set of HV buses, such as {1, 2, 3}
+        print(lvl_dicts["bus"][5])  # could print a set of MV buses, such as {4, 5, 6}
+    """
+    elms = elms if elms is not None else pp_elements()
+    lvl_dicts = dict()
+    for elm in elms:
+        if net[elm].shape[0] or include_empty_elms_dicts:
+            lvl_dicts[elm] = dict()
+
+            if "trafo" not in elm:
+                voltlvls = [1, 3, 5, 7]
+                for lvl in voltlvls:
+                    lvl_dicts[elm][lvl] = set(voltlvl_idx(net, elm, lvl))
+
+            else:  # special handling for trafos and trafo3ws
+                found_elm = set()
+                for hv_lvl in [1, 3, 5, 7]:
+                    lvl_dicts[elm][hv_lvl] = set(voltlvl_idx(net, elm, hv_lvl, "hv_bus")) & \
+                        set(voltlvl_idx(net, elm, hv_lvl, "lv_bus"))
+                    found_elm |= lvl_dicts[elm][hv_lvl]
+                    if hv_lvl < 6:
+                        lvl_dicts[elm][hv_lvl+1] = set(voltlvl_idx(net, elm, hv_lvl, "hv_bus")) & \
+                            set(voltlvl_idx(net, elm, hv_lvl+2, "lv_bus"))
+                        found_elm |= lvl_dicts[elm][hv_lvl+1]
+
+                other = set(net[elm].index) - found_elm
+                if len(other):
+                    bus_types = ["hv_bus", "lv_bus"] if elm == "trafo" else [
+                        "hv_bus", "mv_bus", "lv_bus"]
+                    for idx in other:
+                        voltage_values = net.bus.vn_kv.loc[net[elm][bus_types].loc[idx]].values
+                        key = "-".join(get_voltlvl(voltage_values).astype(str))
+                        if key not in lvl_dicts[elm].keys():
+                            lvl_dicts[elm][key] = set()
+                        lvl_dicts[elm][key] |= set([idx])
+
+    return lvl_dicts
 
 
 def get_voltlvl(voltage_values, vn_kv_limits=[145, 60, 1]):
