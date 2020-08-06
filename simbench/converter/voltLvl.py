@@ -95,7 +95,6 @@ def _voltlvl_idx(net, element, voltage_level, branch_bus=None, vn_kv_limits=[145
             bool2 = net.measurement.side == side
             measurement_buses.loc[bool1 & bool2] = net[branch][bus].loc[net.measurement.element.loc[
                 bool1 & bool2]].values
-        measurement_buses = measurement_buses.astype(int)
         isin_Idx_bus = measurement_buses.isin(Idx_bus)
 
     elif branch_bus in net[element].columns:  # all other elements than measurement and bus

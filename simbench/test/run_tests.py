@@ -35,7 +35,8 @@ def run_all_tests(parallel=False, n_cpu=None):
 
     Inputs:
     parallel (bool, False) - If true and pytest-xdist is installed, tests are run in parallel
-    n_cpu (int, None) - number of CPUs to run the tests on in parallel. Only relevant for parallel runs.
+    n_cpu (int, None) - number of CPUs to run the tests on in parallel. Only relevant for parallel
+    runs.
     """
     logger = _create_logger()
 
@@ -53,7 +54,8 @@ def run_fast_tests(parallel=False, n_cpu=None):
     Only executes the tests which are **not** marked as slow with pytest.mark.slow
 
     parallel (bool, False) - If true and pytest-xdist is installed, tests are run in parallel
-    n_cpu (int, None) - number of CPUs to run the tests on in parallel. Only relevant for parallel runs.
+    n_cpu (int, None) - number of CPUs to run the tests on in parallel. Only relevant for parallel
+    runs.
 
     """
     if parallel:
@@ -69,7 +71,8 @@ def run_slow_tests(parallel=False, n_cpu=None):
     Only executes the tests which are marked as slow with pytest.mark.slow
 
     parallel (bool, False) - If true and pytest-xdist is installed, tests are run in parallel
-    n_cpu (int, None) - number of CPUs to run the tests on in parallel. Only relevant for parallel runs.
+    n_cpu (int, None) - number of CPUs to run the tests on in parallel. Only relevant for parallel
+    runs.
     """
     if parallel:
         if n_cpu is None:
@@ -81,3 +84,4 @@ def run_slow_tests(parallel=False, n_cpu=None):
 
 if __name__ == "__main__":
     run_all_tests()
+    # run_fast_tests()

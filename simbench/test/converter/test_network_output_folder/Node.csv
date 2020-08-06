@@ -14,4 +14,4 @@ Bus 11;busbar;1.006;NULL;110;NULL;NULL;NULL;coord_10;NULL;3
 Bus 12;busbar;NULL;NULL;110;NULL;NULL;NULL;coord_10;NULL;3
 Bus 13;busbar;1.02;NULL;20;NULL;NULL;NULL;coord_11;NULL;5
 Bus 1x;auxiliary;NULL;NULL;20;NULL;NULL;Substation1;coord_0;NULL;5
-Bus 1a_1;auxiliary;NULL;NULL;20;NULL;NULL;Substation1;coord_0;NULL;5
+Bus 1a_1;auxiliary;NULL;NULL;20;NULL;NULL;Substation1;coord_12;NULL;5

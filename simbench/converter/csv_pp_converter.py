@@ -666,10 +666,10 @@ def _rename_and_split_input_tables(data):
     split_gen_col = "phys_type" if _is_pp_type(data) else "calc_type"
     split_Line = [] if _is_pp_type(data) else ["Line"]
     split_ppelm_into_type_and_elm = ["dcline"] if _is_pp_type(data) else []
-    input_elm_col = 1 if _is_pp_type(data) else 0
-    output_elm_col = 0 if _is_pp_type(data) else 1
+    input_elm_col = "pp" if _is_pp_type(data) else "csv"
+    output_elm_col = "csv" if _is_pp_type(data) else "pp"
     corr_df = _csv_table_pp_dataframe_correspondings(pd.DataFrame)
-    corr_df[2] = corr_df[0] + "*" + corr_df[1]
+    corr_df["comb_str"] = corr_df["csv"] + "*" + corr_df["pp"]
 
     # all elements, which need to be converted to multiple output element tables, (dupl) need to be
     # treated specially, thus must be in split lists
@@ -681,7 +681,7 @@ def _rename_and_split_input_tables(data):
         # get actual element tablenames
         input_elm = corr_df.loc[idx, input_elm_col]
         output_elm = corr_df.loc[idx, output_elm_col]
-        corr_str = corr_df.loc[idx, 2]
+        corr_str = corr_df.loc[idx, "comb_str"]
 
         if input_elm in split_gen:
             data[corr_str] = data[input_elm][data[input_elm][split_gen_col] == _get_split_gen_val(

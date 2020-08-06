@@ -77,7 +77,7 @@ def _csv_table_pp_dataframe_correspondings(type_):
     elif type_ is DataFrame:
         # is like pd.DataFrame(_csv_table_pp_dataframe_correspondings(tuple))
         return DataFrame([(csv_tablename, pp_dfname) for csv_tablename, pp_dfname in
-                          zip(csv_tablenames_, pp_dfnames)])
+                          zip(csv_tablenames_, pp_dfnames)], columns=["csv", "pp"])
     elif isinstance(type_, str):
         if type_ in csv_tablenames_:
             corr = [pp for csv, pp in zip(csv_tablenames_, pp_dfnames) if csv == type_]
@@ -87,6 +87,9 @@ def _csv_table_pp_dataframe_correspondings(type_):
             return corr[0]
         else:
             return corr
+    else:
+        raise NotImplementedError("_csv_table_pp_dataframe_correspondings() is not implemented " +
+                                  "for %s as input" % str(type_))
 
 
 def all_dtypes():

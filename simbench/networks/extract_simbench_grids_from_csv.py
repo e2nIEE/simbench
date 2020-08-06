@@ -15,7 +15,7 @@ from simbench.networks.simbench_code import get_simbench_code_and_parameters
 from simbench.networks.profiles import filter_unapplied_profiles
 from simbench.networks.loadcases import filter_loadcases
 from simbench import csv_data2pp, read_csv_data, csv_tablenames, idx_in_2nd_array, \
-    ensure_iterability
+    ensure_iterability, pp_profile_names
 
 try:
     import pplog as logging
@@ -371,6 +371,38 @@ def get_simbench_net(sb_code_info, input_path=None):
         generate_no_sw_variant(net)
 
     return net
+
+
+def get_all_simbench_profiles(scenario, input_path=None, sep=";"):
+    """
+    Returns a dict of DataFrames with all simbench profiles of the given scenario.
+    These include all profiles with the net data received by
+    get_simbench_net("1-complete_data-mixed-all-%s-sw" % str(scenario)).
+
+    INPUT:
+        **scenario** (int) - defines to which scenario the requested profiles belong to. Should be
+        within [0, 1, 2].
+
+    OPTIONAL:
+        **input_path** (path) - option to change the path to all simbench grid csv files. However,
+        a change should not be necessary.
+
+        **sep** (str, ";") - seperator of the csv files which contain the profiles information.
+
+    OUTPUT:
+        **profiles** (dict) - dict of DataFrames with all simbench profiles of the given scenario
+    """
+    input_path = input_path if input_path is not None else complete_data_path(scenario)
+    csvtablenames = csv_tablenames(['profiles'])
+
+    # read all profiles data
+    profiles = read_csv_data(input_path, sep=sep, tablename=csvtablenames)
+
+    # rename csv_tablenames by pandapower element names
+    for csv_name, pp_name in zip(csvtablenames, pp_profile_names()):
+        profiles[pp_name] = profiles.pop(csv_name)
+
+    return profiles
 
 
 if __name__ == '__main__':

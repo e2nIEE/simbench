@@ -495,6 +495,22 @@ def test_aux_nodes_without_multiple_connected_branches():
         assert not len(annwdb)
 
 
+def test_get_all_simbench_profiles():
+    for scenario in [0, 1, 2]:
+        profilesA = sb.get_simbench_net("1-complete_data-mixed-all-%s-sw" % str(scenario))[
+            "profiles"]
+        profilesB = sb.get_all_simbench_profiles(scenario)
+
+        for prof_table in ["load", "powerplants", "renewables", "storage"]:
+            assert prof_table in profilesB.keys()
+
+        for prof_table in profilesB.keys():
+            assert profilesA[prof_table].shape[0] == profilesB[prof_table].shape[0]
+            if scenario > 0 or prof_table != "storage":
+                assert profilesB[prof_table].shape[0] > 0
+            assert not len(set(profilesA[prof_table].columns) - set(profilesB[prof_table].columns))
+            assert profilesB[prof_table].shape[1] > 0
+
 if __name__ == '__main__':
     if 0:
         pytest.main([__file__, "-xs"])
@@ -506,5 +522,6 @@ if __name__ == '__main__':
 #        test_get_simbench_net()
         test_get_simbench_net(sb_codes=sb.collect_all_simbench_codes(scenario=0)[::-1])
 #        test_aux_nodes_without_multiple_connected_branches()
+        # test_get_all_simbench_profiles()
 
         pass
