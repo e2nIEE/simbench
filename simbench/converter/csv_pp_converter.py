@@ -381,6 +381,8 @@ def _convert_measurement(data):
         _sort_measurement_elements(data)
         rename_dict = {y: x for x, y in rename_dict.items()}
         data["Measurement"].rename(columns=rename_dict, inplace=True)
+
+        # --- determine which measurement indices are which element type -> fill "element_type"
         idx_trafo = data["Measurement"].index[data["Measurement"]["element"].isin(data[
             "Transformer"]["id"])].astype(int)
         idx_line = data["Measurement"].index[data["Measurement"]["element"].isin(data[
@@ -396,21 +398,26 @@ def _convert_measurement(data):
         data["Measurement"]["element_type"] = "bus"
         data["Measurement"]["element_type"].loc[idx_trafo] = "trafo"
         data["Measurement"]["element_type"].loc[idx_line] = "line"
+
+        # --- fill "element" column
         data["Measurement"]["element"].loc[idx_trafo] = data["Transformer"].index[
             idx_in_2nd_array(data["Measurement"]["element"].loc[idx_trafo].values,
-                                data["Transformer"]["id"].values)]
+                             data["Transformer"]["id"].values)]
         data["Measurement"]["element"].loc[idx_line] = data["Line"].index[idx_in_2nd_array(
             data["Measurement"]["element"].loc[idx_line].values, data["Line"]["id"].values)]
         data["Measurement"]["element"].loc[idx_bus] = data["Node"].index[idx_in_2nd_array(
             data["Measurement"]["side"].loc[idx_bus].values, data["Node"]["id"].values)]
+
+        # --- fill "side" column
         bus_indices = data["Node"].index[idx_in_2nd_array(data["Measurement"][
             "side"].values, data["Node"]["id"].values)]
-        bus_names = data["Node"]["id"].loc[bus_indices]
+        bus_names = pd.Series(data["Node"]["id"].loc[bus_indices].values,
+                              index=data["Measurement"].index)
         data["Measurement"]["side"] = np.nan
-        are_hv = ensure_iterability(bus_names.loc[bus_names.index[idx_trafo]].values == data[
+        are_hv = ensure_iterability(bus_names.loc[idx_trafo].values == data[
             "Transformer"]["nodeHV"].loc[data["Measurement"]["element"].loc[idx_trafo]].values)
         data["Measurement"].loc[idx_trafo, "side"] = ["hv" if is_hv else "lv" for is_hv in are_hv]
-        are_from = ensure_iterability(bus_names.loc[bus_names.index[idx_line]].values == data[
+        are_from = ensure_iterability(bus_names.loc[idx_line].values == data[
                 "Line"]["nodeA"].loc[data["Measurement"]["element"].loc[idx_line]].values)
         data["Measurement"].loc[idx_line, "side"] = ["from" if is_from else "to" for is_from in
                                                      are_from]
@@ -869,3 +876,7 @@ def _inscribe_fix_values(output_data, output_name):
     for fxt in fix_values_tuples:
         if fxt[0] in output_data[output_name].columns:
             output_data[output_name][fxt[0]] = fxt[1]
+
+
+if __name__ == '__main__':
+    pass
