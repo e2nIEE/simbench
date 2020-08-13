@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import time
 import pandapower as pp
+from pandapower.topology import unsupplied_buses
 
 from simbench import sb_dir
 import simbench as sb
@@ -348,7 +349,7 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
 
     # all buses supplied
     if sb_code_params[1] != "complete_data":
-        unsup_buses = pp.unsupplied_buses(net, respect_switches=False)
+        unsup_buses = unsupplied_buses(net, respect_switches=False)
         if len(unsup_buses):
             logger.error("There are %i unsupplied buses." % len(unsup_buses))
             if len(unsup_buses) < 10:
@@ -511,17 +512,18 @@ def test_get_all_simbench_profiles():
             assert not len(set(profilesA[prof_table].columns) - set(profilesB[prof_table].columns))
             assert profilesB[prof_table].shape[1] > 0
 
+
 if __name__ == '__main__':
     if 0:
         pytest.main([__file__, "-xs"])
     else:
-#        test_get_bus_bus_switch_indices_from_csv()
-#        test_get_relevant_subnets()
-#        test_get_extracted_csv_data_from_dict(print_instead=True)
-#        test_generate_no_sw_variant()
-#        test_get_simbench_net()
-        test_get_simbench_net(sb_codes=sb.collect_all_simbench_codes(scenario=0)[::-1])
-#        test_aux_nodes_without_multiple_connected_branches()
+        # test_get_bus_bus_switch_indices_from_csv()
+        # test_get_relevant_subnets()
+        # test_get_extracted_csv_data_from_dict(print_instead=False)
+        # test_generate_no_sw_variant()
+        test_get_simbench_net()
+        # test_get_simbench_net(sb_codes=sb.collect_all_simbench_codes(scenario=0)[::-1])
+        # test_aux_nodes_without_multiple_connected_branches()
         # test_get_all_simbench_profiles()
 
         pass
