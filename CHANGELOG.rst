@@ -4,6 +4,7 @@ Change Log
 [develop]
 ----------------------
 
+- [CHANGED] Storage profiles with curtailment and self-consumption; ChargeLevel and EStore of storages
 - [FIXED] PowerPlantProfiles: add missing hour at time change
 
 [1.1.0] - 2020-05-07
