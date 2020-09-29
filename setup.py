@@ -24,7 +24,7 @@ with open('.travis.yml', 'rb') as f:
 
 setup(
     name='simbench',
-    version='1.1.0',
+    version='1.2.0',
     author='Steffen Meinecke',
     author_email='steffen.meinecke@uni-kassel.de',
     description='Electrical Power System Benchmark Models',

@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[develop]
+[1.2.0] - 2020-09-29
 ----------------------
 
 - [CHANGED] Storage profiles with curtailment and self-consumption; ChargeLevel and EStore of storages
