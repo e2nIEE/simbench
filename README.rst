@@ -25,6 +25,10 @@
    :target: https://codecov.io/github/e2nIEE/simbench?branch=master
    :alt: codecov
 
+.. image:: https://pepy.tech/badge/simbench
+   :target: https://pepy.tech/project/simbench
+   :alt: pepy
+   
 .. image:: https://img.shields.io/badge/License-ODbL-brightgreen.svg
    :target: https://opendatacommons.org/licenses/odbl
    :alt: ODbL
