@@ -58,7 +58,7 @@ def test_missing_profiles():
 
     assert not sb.profiles_are_missing(net, return_as_bool=True)
     av_prof = sb.get_available_profiles(net, "load", p_or_q="q", continue_on_missing=False)
-    assert not len(set(in_net_profiles.columns) - set(av_prof))
+    assert not len(set(in_net_profiles.columns) - av_prof)
     miss_prof = sb.get_missing_profiles(net, "load", p_or_q="p")
     assert isinstance(miss_prof, set)
     assert not len(miss_prof)
@@ -67,7 +67,7 @@ def test_missing_profiles():
     del net.profiles["renewables"]["input1"]
     assert sb.profiles_are_missing(net, return_as_bool=True)
     av_prof = sb.get_available_profiles(net, "renewables", p_or_q=None, continue_on_missing=True)
-    assert len(set(in_net_profiles.columns) - set(av_prof)) == 1
+    assert len(set(in_net_profiles.columns) - av_prof) == 1
     miss_prof = sb.profiles_are_missing(net, return_as_bool=False)
     for key, val in miss_prof.items():
         if key == "load":

@@ -25,9 +25,9 @@ __author__ = 'smeinecke'
 def get_applied_profiles(net, profile_type):
     """ Returns a list of unique profiles in element tables, e.g. net.sgen.profile.
         profile_type must be in ["load", "renewables", "powerplants", "storage"]. """
-    applied_profiles = []
+    applied_profiles = set()
     if profile_type in ["renewables", "powerplants"]:
-        phys_type = "RES" if profile_type == "renewables" else "PP"
+        phys_type = "RES" if profile_type == "renewables" else "PowerPlant"
         fitting_elm = {"renewables": "sgen", "powerplants": "gen"}[profile_type]
         for elm in ['sgen', 'gen', 'ext_grid']:
             if 'profile' in net[elm].columns:
@@ -35,10 +35,10 @@ def get_applied_profiles(net, profile_type):
                     idx = net[elm].index[net[elm].phys_type == phys_type]
                 else:
                     idx = net[elm].index if elm == fitting_elm else []
-                applied_profiles += list(net[elm].profile[idx].dropna().unique())
+                applied_profiles |= set(net[elm].profile[idx].dropna())
     else:
         if 'profile' in net[profile_type].columns:
-            applied_profiles += list(net[profile_type].profile.dropna().unique())
+            applied_profiles |= set(net[profile_type].profile.dropna())
     return applied_profiles
 
 
@@ -52,25 +52,40 @@ def get_available_profiles(net, profile_type, p_or_q=None, continue_on_missing=F
         avail_prof = avail_prof if "time" not in avail_prof else avail_prof.difference(["time"])
         avail_prof = pd.Series(avail_prof)
         if p_or_q is None:
-            return avail_prof
+            return set(avail_prof)
         elif p_or_q == "p":
-            return avail_prof.loc[avail_prof.str.endswith("_pload")].str[:-6]
+            return set(avail_prof.loc[avail_prof.str.endswith("_pload")].str[:-6])
         elif p_or_q == "q":
-            return avail_prof.loc[avail_prof.str.endswith("_qload")].str[:-6]
+            return set(avail_prof.loc[avail_prof.str.endswith("_qload")].str[:-6])
         else:
             raise ValueError(str(p_or_q) + " is unknown as 'p_or_q'.")
     elif continue_on_missing:
         logger.warning("%s is not in net['profiles'].keys()" % profile_type)
-        return pd.Series()
+        return set()
     else:
         raise ValueError("%s is not in net['profiles'].keys()" % profile_type)
 
 
 def get_missing_profiles(net, profile_type, p_or_q=None):
-    """ Returns a set of profiles which miss in net.profiles compared to the profile columns in the
-        element tables. """
-    return set(get_applied_profiles(net, profile_type)) - set(get_available_profiles(
-        net, profile_type, p_or_q=p_or_q))
+    """ Returns a set of profiles which miss in net.profiles compared to the profile column of the
+        element table. """
+    return get_applied_profiles(net, profile_type) - get_available_profiles(
+        net, profile_type, p_or_q=p_or_q)
+
+
+def get_unused_profiles(net, profile_type, p_or_q=None):
+    """ Returns a set of profiles which is in net.profiles but is not used in the profile column
+        of the element table. """
+    if profile_type == "load" and p_or_q is None:
+        applied_ = set()
+        for s in get_applied_profiles(net, profile_type):
+            applied_ |= {"%s_pload" % s, "%s_qload" % s}
+        availp = {"%s_pload" % s for s in get_available_profiles(net, profile_type, "p")}
+        availq = {"%s_qload" % s for s in get_available_profiles(net, profile_type, "q")}
+        return (availp | availq) - applied_
+    else:
+        return get_available_profiles(net, profile_type, p_or_q=p_or_q) - \
+            get_applied_profiles(net, profile_type)
 
 
 def dismantle_dict_values_to_deep_list(dict_):
@@ -127,6 +142,26 @@ def filter_unapplied_profiles(csv_data):
         unapplied_profiles = csv_data[prof_tab].columns.difference(applied_profiles)
         logger.debug("These %ss are dropped: " % prof_tab + str(unapplied_profiles))
         csv_data[prof_tab].drop(unapplied_profiles, axis=1, inplace=True)
+
+
+def filter_unapplied_profiles_pp(net, named_profiles: bool):
+    """ Filters unapplied profiles from pandapower net. """
+    if "profiles" in net and isinstance(net["profiles"], dict):
+        if named_profiles:
+            for key in net["profiles"].keys():
+                unused = get_unused_profiles(net, key)
+                net.profiles[key].drop(columns=unused, inplace=True)
+        else:
+            for key in net.profiles.keys():
+                if isinstance(key, tuple):
+                    elm = key[0]
+                elif isinstance(key, str):
+                    elm = key.split(".")[0]
+                else:
+                    raise NotImplementedError("The keys of net.profiles are expected as " +
+                                              "tuple(element, column) or as str, e.g. 'gen.vm_pu'.")
+                net.profiles[key].drop(columns=net.profiles[key].columns[~net.profiles[
+                    key].columns.isin(net[elm].index)], inplace=True)
 
 
 def get_absolute_profiles_from_relative_profiles(
@@ -250,7 +285,8 @@ def get_absolute_values(net, profiles_instead_of_study_cases, **kwargs):
     OUTPUT:
         **abs_val** (dict) - absolute values calculated from relative scaling factors and maximum
         active or reactive powers. The keys of this dict are tuples consisting of element and
-        parameter. The values are DataFrames with absolute power values.
+        column or of strings consisting of the same but splitted by '.'.
+        The values are DataFrames with absolute power values.
     """
     abs_val = dict()
 
@@ -317,7 +353,16 @@ def apply_const_controllers(net, absolute_profiles_values):
 
     """
     n_time_steps = dict()
-    for (elm, param), values in absolute_profiles_values.items():
+    for key, values in absolute_profiles_values.items():
+        if isinstance(key, tuple):
+            elm = key[0]
+            col = key[1]
+        elif isinstance(key, str):
+            elm = key.split(".")[0]
+            col = key.split(".")[1]
+        else:
+            raise NotImplementedError("The keys of net.profiles are expected as " +
+                                      "tuple(element, column) or as str, e.g. 'gen.vm_pu'.")
         if values.shape[1]:
 
             # check DataFrame shape[0] == time_steps
@@ -331,20 +376,20 @@ def apply_const_controllers(net, absolute_profiles_values):
             # check DataFrame shape[1] == net[elm].index
             unknown_idx = values.columns.difference(net[elm].index)
             if len(unknown_idx):
-                logger.warning("In absolute_profiles_values[%s][%s], " % (elm, param) +
+                logger.warning("In absolute_profiles_values[%s], " % key +
                                "there are indices additional & unknown to net[%s].index" % elm +
                                str(["%i" % i for i in unknown_idx]))
             missing_idx = net[elm].index.difference(values.columns)
             if len(missing_idx):
-                logger.warning("In absolute_profiles_values[%s][%s], " % (elm, param) +
+                logger.warning("In absolute_profiles_values[%s], " % key +
                                "these indices are missing compared to net[%s].index" % elm +
                                str(["%i" % i for i in missing_idx]))
 
             # apply const controllers
             idx = list(net[elm].index.intersection(values.columns))
-            ConstControl(net, element=elm, variable=param,
+            ConstControl(net, element=elm, variable=col,
                          element_index=idx, profile_name=idx,
-                         data_source=DFData(absolute_profiles_values[(elm, param)][idx]))
+                         data_source=DFData(absolute_profiles_values[key][idx]))
 
     # compare all DataFrame shape[0] == time_steps
     if len(set(n_time_steps.values())) > 1:

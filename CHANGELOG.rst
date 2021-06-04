@@ -1,11 +1,16 @@
 Change Log
 =============
 
+- [CHANGED] generalize (elm, col) recognizing in profiles dicts
+- [CHANGED] output type of get_applied_profiles() and get_available_profiles() from list to set
+- [ADDED] filter_unapplied_profiles_pp(), get_unused_profiles()
+
 [1.2.0] - 2020-09-29
 ----------------------
 
 - [CHANGED] Storage profiles with curtailment and self-consumption; ChargeLevel and EStore of storages
 - [FIXED] PowerPlantProfiles: add missing hour at time change
+- [FIXED] adapt to pandapower changes: import unsupplied_buses()
 
 [1.1.0] - 2020-05-07
 ----------------------
