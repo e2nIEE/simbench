@@ -402,14 +402,14 @@ def replace_branch_switches(net, reserved_aux_node_names=None):
     idx_t_sw = net.switch.index[net.switch.et == "t"]
     idx_l_sw = net.switch.index[net.switch.et == "l"]
     n_branch_switches = len(idx_t_sw)+len(idx_l_sw)
-    idx_bus = net.switch.bus[idx_t_sw | idx_l_sw]
+    idx_bus = net.switch.bus[idx_t_sw.union(idx_l_sw)]
 
     # --- create auxiliary nodes
     names, reserved_aux_node_names = append_str_by_underline_count(
         net.bus.name[idx_bus], reserved_strings=reserved_aux_node_names)
     if "subnet" in net.switch.columns:
         # if replace_branch_switches() is called by pp2csv_data(), "subnet" is available
-        subnets = net.switch.subnet.loc[idx_t_sw | idx_l_sw].values
+        subnets = net.switch.subnet.loc[idx_t_sw.union(idx_l_sw)].values
     else:
         # if replace_branch_switches() is called out of pp2csv_data(), this else statement is given
         subnets = net.bus.zone[idx_bus].values
@@ -433,16 +433,16 @@ def replace_branch_switches(net, reserved_aux_node_names=None):
             idx_b_sw].values
         # is_first_bus_type == hv_bus resp. from_bus
         pos_in_aux_buses = idx_in_2nd_array(np.array(idx_b_sw[is_first_bus_type]),
-                                            np.array(idx_t_sw | idx_l_sw))
+                                            np.array(idx_t_sw.union(idx_l_sw)))
         net[branch][bus_types[0]].loc[idx_elm[is_first_bus_type]] = aux_buses[pos_in_aux_buses]
         # ~is_first_bus_type == lv_bus resp. to_bus
         pos_in_aux_buses = idx_in_2nd_array(np.array(idx_b_sw[~is_first_bus_type]),
-                                            np.array(idx_t_sw | idx_l_sw))
+                                            np.array(idx_t_sw.union(idx_l_sw)))
         net[branch][bus_types[1]].loc[idx_elm[~is_first_bus_type]] = aux_buses[pos_in_aux_buses]
 
     # --- replace switch element by new auxiliary nodes
-    net.switch.element.loc[idx_t_sw | idx_l_sw] = aux_buses
-    net.switch.et.loc[idx_t_sw | idx_l_sw] = "b"
+    net.switch.element.loc[idx_t_sw.union(idx_l_sw)] = aux_buses
+    net.switch.et.loc[idx_t_sw.union(idx_l_sw)] = "b"
 
     return reserved_aux_node_names
 

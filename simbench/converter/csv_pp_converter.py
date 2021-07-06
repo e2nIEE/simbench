@@ -387,7 +387,7 @@ def _convert_measurement(data):
             "Transformer"]["id"])].astype(int)
         idx_line = data["Measurement"].index[data["Measurement"]["element"].isin(data[
             "Line"]["id"])].astype(int)
-        idx_bus = data["Measurement"].index.difference(idx_line | idx_trafo).astype(int)
+        idx_bus = data["Measurement"].index.difference(idx_line.union(idx_trafo)).astype(int)
         n_no_element2_info = data["Measurement"]["element"].isnull().sum()
         if n_no_element2_info != len(idx_bus):
             logger.warning("%i Measurement have no element2 info, but " % n_no_element2_info +
@@ -465,13 +465,13 @@ def _csv_types_to_pp1(net, csv_data):
     # --- splitting Line table into a table with dcline data and line data
     idx_lines = csv_data["Line"].index[csv_data["Line"].type.isin(csv_data["LineType"].id)]
     idx_dclines = csv_data["Line"].index[csv_data["Line"].type.isin(csv_data["DCLineType"].id)]
-    missing = csv_data["Line"].index.difference(idx_lines | idx_dclines)
+    missing = csv_data["Line"].index.difference(idx_lines.union(idx_dclines))
     if len(missing):
         raise ValueError("In Line table, the types of these line indices misses in LineType and " +
                          "DCLineType table: " + str(list(missing)))
-    if len(idx_lines & idx_dclines):
+    if len(idx_lines.intersection(idx_dclines)):
         raise ValueError("In Line table, the types of these line indices occur in LineType and " +
-                         "DCLineType table: " + str(list(idx_lines & idx_dclines)))
+                         "DCLineType table: " + str(list(idx_lines.intersection(idx_dclines))))
     csv_data["Line*line"] = csv_data["Line"].loc[idx_lines]
     csv_data["Line*dcline"] = csv_data["Line"].loc[idx_dclines]
 
@@ -826,10 +826,10 @@ def _merge_dcline_and_storage_type_and_element_data(input_data):
         Type_col_except_std_type = input_data[corr_str_type].columns.difference(["std_type"])
         if version.parse(pd.__version__) >= version.parse("0.21.0"):
             input_data[corr_str] = input_data[corr_str].reindex(
-                columns=input_data[corr_str].columns | Type_col_except_std_type)
+                columns=input_data[corr_str].columns.union(Type_col_except_std_type))
         else:
             input_data[corr_str] = input_data[corr_str].reindex_axis(
-                input_data[corr_str].columns | Type_col_except_std_type, axis=1)
+                input_data[corr_str].columns.union(Type_col_except_std_type), axis=1)
         input_data[corr_str].loc[:, Type_col_except_std_type] = input_data[corr_str_type].loc[
             idx_type, Type_col_except_std_type].values
         input_data[corr_str_type].drop(input_data[corr_str_type].index, inplace=True)

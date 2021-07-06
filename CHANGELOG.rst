@@ -1,6 +1,7 @@
 Change Log
 =============
 
+- [CHANGED] adapt to pandas changes of version 1.2.0: deprecate |&^ as set operations for Index
 - [CHANGED] generalize (elm, col) recognizing in profiles dicts
 - [CHANGED] output type of get_applied_profiles() and get_available_profiles() from list to set
 - [ADDED] filter_unapplied_profiles_pp(), get_unused_profiles()

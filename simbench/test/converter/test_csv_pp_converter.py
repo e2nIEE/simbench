@@ -231,6 +231,9 @@ def test_example_simple():
     net.load["type"] = np.nan
     del net_from_csv_data["substation"]
     del net_from_csv_data["profiles"]
+    if "power_station_trafo" in net.gen.columns:
+        assert net.gen["power_station_trafo"].isnull().all()
+        del net.gen["power_station_trafo"]
     for key in net.keys():
         if isinstance(net[key], pd.DataFrame):
             # drop unequal columns

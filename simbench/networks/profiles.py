@@ -316,10 +316,10 @@ def get_absolute_values(net, profiles_instead_of_study_cases, **kwargs):
             if isinstance(loadcase_type, list):
                 assert elm_col[0] == "sgen"
                 assert len(loadcase_type) == 3
-                Idx_wind = net.sgen.loc[(net.sgen.type.str.contains("Wind").fillna(False)) |
-                                        (net.sgen.type.str.contains("WP").fillna(False))].index
-                Idx_pv = net.sgen.loc[net.sgen.type.str.contains("PV").fillna(False)].index
-                Idx_sgen = net.sgen.index.difference(Idx_wind | Idx_pv)
+                Idx_wind = net.sgen.index[(net.sgen.type.str.contains("Wind").fillna(False)) |
+                                        (net.sgen.type.str.contains("WP").fillna(False))]
+                Idx_pv = net.sgen.index[net.sgen.type.str.contains("PV").fillna(False)]
+                Idx_sgen = net.sgen.index.difference(Idx_wind.union(Idx_pv))
                 net.sgen["loadcase_type"] = ""
                 net.sgen['loadcase_type'].loc[Idx_wind] = loadcase_type[0]
                 net.sgen['loadcase_type'].loc[Idx_pv] = loadcase_type[1]
