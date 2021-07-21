@@ -248,11 +248,13 @@ def _csv_pp_column_correspondings(tablename):
 #        ("dVaHV", "xxxxxxxx", None), ("dVaMV", "xxxxxxxx", None),
 #        ("dVaLV", "xxxxxxxx", None),
 #        ("tapNeutrMV", "xxxxxxxx", None), ("tapNeutrLV", "xxxxxxxx", None),
-        ("tapMinHV", "tap_min", None), ("tapMaxHV", "tap_max", None)
+        ("tapMinHV", "tap_min", None), ("tapMaxHV", "tap_max", None),
 #        ("tapMinMV", "xxxxxxxx", None), ("tapMinLV", "xxxxxxxx", None),
 #        ("tapMaxMV", "xxxxxxxx", None), ("tapMaxLV", "xxxxxxxx", None)
         # cosidered by _add_vm_va_setpoints_to_buses() and _add_phys_type_and_vm_va_setpoints_to_generation_element_tables():
         # ("vmSetp", "vm_pu", None), ("vaSetp", "va:degree", None),
+        # slack_weight
+        ("dspf", "slack_weight", None)
         ]
 
     # --- add "pLoad", "qLoad" respectively "pPP", "qPP" or others, according to tablename

@@ -42,10 +42,10 @@ def _extend_pandapower_net_columns(net):
     min_max = ['min_p_mw', 'max_p_mw', 'min_q_mvar', 'max_q_mvar']
     add_columns = {x: (min_max+y if x in elms_with_min_max else y) for x, y in add_columns.items()}
     add_columns["bus"] = ['min_vm_pu', 'max_vm_pu', 'substation'] + add_columns["bus"]
-    add_columns["ext_grid"] = ['dspf', 'p_disp_mw', 'phys_type', 'type', 'profile', 'sn_mva'] + \
-        add_columns["ext_grid"]
-    add_columns["gen"] = ['dspf', 'phys_type', 'profile'] + add_columns["gen"]
-    add_columns["sgen"] = ['dspf', 'phys_type', 'profile'] + add_columns["sgen"]
+    add_columns["ext_grid"] = ['slack_weight', 'p_disp_mw', 'phys_type', 'type', 'profile',
+                               'sn_mva'] + add_columns["ext_grid"]
+    add_columns["gen"] = ['slack_weight', 'phys_type', 'profile'] + add_columns["gen"]
+    add_columns["sgen"] = ['slack_weight', 'phys_type', 'profile'] + add_columns["sgen"]
     add_columns["load"] = ['profile'] + add_columns["load"]
     add_columns["storage"] = ['profile', "efficiency_percent", "self-discharge_percent_per_day"] + \
         add_columns["storage"]
@@ -277,16 +277,18 @@ def provide_substation_cols(net):
 
 
 def _add_dspf_calc_type_and_phys_type_columns(net):
-    """ Adds 'dspf' and 'calc_type' column to generation elements if missing. """
+    """ Adds 'slack_weight' and 'calc_type' column to generation elements if missing. """
     gen_tables = ["ext_grid", "gen", "sgen", "ward", "xward"]
     phys_types = ["ExternalNet", "PowerPlant", "RES", None, None]
     calc_types = ["vavm", "pvm", "pq", "Ward", "xWard"]
     for gen_table, phys_type, calc_type in zip(gen_tables, phys_types, calc_types):
-        if "dspf" not in net[gen_table].columns or net[gen_table]["dspf"].isnull().all():
+        if "slack_weight" not in net[gen_table].columns or net[gen_table][
+                "slack_weight"].isnull().all():
             if gen_table == "ext_grid" and net[gen_table].shape[0]:
-                net[gen_table]["dspf"] = 1/net[gen_table].shape[0]
+                net[gen_table]["slack_weight"] = 1/net[gen_table].shape[0]
             else:
-                net[gen_table]["dspf"] = 0
+                net[gen_table]["slack_weight"] = 0
+        net[gen_table].rename(columns={"slack_weight": "dspf"}, inplace=True)
         if phys_type is not None:
             if "phys_type" not in net[gen_table].columns:
                 net[gen_table]["phys_type"] = phys_type
