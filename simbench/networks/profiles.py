@@ -339,7 +339,7 @@ def get_absolute_values(net, profiles_instead_of_study_cases, **kwargs):
     return abs_val
 
 
-def apply_const_controllers(net, absolute_profiles_values):
+def apply_const_controllers(net, absolute_profiles_values, exclude_elms_dict=None):
     """
     Applys ConstControl instances to the net. As a result, one can easily run timeseries with given
     power values of e.g. loads, sgens, storages or gens.
@@ -351,6 +351,9 @@ def apply_const_controllers(net, absolute_profiles_values):
         keys should be tuples of length 2 (element and parameter), DataFrame size is
         timesteps x number of elements
 
+    OPTIONAL:
+        **exclude_elms_dict** (dict, None) - elements which should not get ConstControllers. The
+        keys should be the element type, such as "sgen", and the values should be the indices.
     """
     n_time_steps = dict()
     for key, values in absolute_profiles_values.items():
@@ -364,6 +367,8 @@ def apply_const_controllers(net, absolute_profiles_values):
             raise NotImplementedError("The keys of net.profiles are expected as " +
                                       "tuple(element, column) or as str, e.g. 'gen.vm_pu'.")
         if values.shape[1]:
+            to_exclude = pd.Index([]) if not isinstance(exclude_elms_dict, dict) or elm not in \
+                exclude_elms_dict.keys() else pd.Index(exclude_elms_dict[elm])
 
             # check DataFrame shape[0] == time_steps
             if elm in n_time_steps.keys():
@@ -379,14 +384,14 @@ def apply_const_controllers(net, absolute_profiles_values):
                 logger.warning("In absolute_profiles_values[%s], " % key +
                                "there are indices additional & unknown to net[%s].index" % elm +
                                str(["%i" % i for i in unknown_idx]))
-            missing_idx = net[elm].index.difference(values.columns)
+            missing_idx = net[elm].index.difference(values.columns.union(to_exclude))
             if len(missing_idx):
                 logger.warning("In absolute_profiles_values[%s], " % key +
                                "these indices are missing compared to net[%s].index" % elm +
                                str(["%i" % i for i in missing_idx]))
 
             # apply const controllers
-            idx = list(net[elm].index.intersection(values.columns))
+            idx = list(net[elm].index.difference(to_exclude).intersection(values.columns))
             ConstControl(net, element=elm, variable=col,
                          element_index=idx, profile_name=idx,
                          data_source=DFData(absolute_profiles_values[key][idx]))
