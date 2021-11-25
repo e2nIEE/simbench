@@ -190,16 +190,11 @@ def _get_unique_duplicated_dict(df, subset=None):
     dupl = df.index[df.duplicated(subset=subset)]
     uniq = df.index[~df.duplicated(subset=subset)]
     uniq_dupl_dict = {}
-    # nan_str only needed since compare_arrays() using old numpy versions connected to python 3.4
-    # don't detect reliably nans as equal
-    nan_str = "nan"
-    while nan_str in set(df.values):
-        nan_str += "n"
 
     for uni in uniq:
         do_dupl_fit = compare_arrays(
-            np.repeat(df.loc[uni, subset].fillna(nan_str).values.reshape(1, -1), len(dupl), axis=0),
-            df.loc[dupl, subset].fillna(nan_str).values).all(axis=1)
+            np.repeat(df.loc[uni, subset].values.reshape(1, -1), len(dupl), axis=0),
+            df.loc[dupl, subset].values).all(axis=1)
         uniq_dupl_dict[uni] = list(dupl[do_dupl_fit])
     return uniq_dupl_dict
 

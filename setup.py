@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2019 by University of Kassel and Fraunhofer Institute for Energy Economics
+# Copyright (c) 2015-2021 by University of Kassel and Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 
 from setuptools import setup, find_packages

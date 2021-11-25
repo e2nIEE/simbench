@@ -19,7 +19,7 @@ __author__ = 'smeinecke'
 
 def sb2pp_base(variable="power"):
     """ converting factor from simbench data structure to pandapower:
-        power: simbench in MVA - pandapower in kVA
+        power: simbench in MVA - pandapower in MVA (former in kVA)
         current: simbench in A, pandapower in kA
     """
     if variable == "power":

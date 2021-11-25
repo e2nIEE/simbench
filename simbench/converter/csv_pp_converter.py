@@ -637,7 +637,7 @@ def _multi_parameter_determination(data):
         # trafo3w type
         table = "Transformer3WType"
         for vkr, sR, pCu in zip(vkr_3w, sR_3w, pCu_3w):
-            data[table][vkr] = 100 * data[table][pCu] / (data[table][sR] * sb2pp_base())
+            data[table][vkr] = 100 * data[table][pCu] / (data[table][sR]*1e3)
 
 
 def _convert_elements_and_types(input_data, output_data):
