@@ -1,5 +1,6 @@
-# Copyright (c) 2015-2021 by University of Kassel and Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
+# contributors (see AUTHORS file for details). All rights reserved.
 
 from setuptools import setup, find_packages
 import re
