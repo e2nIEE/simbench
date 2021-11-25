@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[1.3.0] - 2021-11-25
+----------------------
+
+- [CHANGED] use GitHub-Ci instead of Travis-CI and update CI to python 3.8 and 3.9
 - [CHANGED] adapt to pandas changes of version 1.2.0: deprecate |&^ as set operations for Index
 - [CHANGED] generalize (elm, col) recognizing in profiles dicts
 - [CHANGED] output type of get_applied_profiles() and get_available_profiles() from list to set

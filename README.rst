@@ -17,9 +17,9 @@
    :target: http://simbench.readthedocs.io/?badge=stable
    :alt: Documentation Status
 
-.. image:: https://travis-ci.org/e2nIEE/simbench.svg?branch=master
-   :target: https://travis-ci.org/e2nIEE/simbench/branches
-   :alt: travis
+.. image:: https://github.com/e2nIEE/simbench/actions/workflows/github_test_action.yml/badge.svg
+   :target: https://github.com/e2nIEE/simbench/actions/
+   :alt: GitHub Actions
 
 .. image:: https://codecov.io/gh/e2nIEE/simbench/branch/master/graph/badge.svg
    :target: https://codecov.io/github/e2nIEE/simbench?branch=master
@@ -28,7 +28,7 @@
 .. image:: https://pepy.tech/badge/simbench
    :target: https://pepy.tech/project/simbench
    :alt: pepy
-   
+
 .. image:: https://img.shields.io/badge/License-ODbL-brightgreen.svg
    :target: https://opendatacommons.org/licenses/odbl
    :alt: ODbL
