@@ -396,8 +396,8 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
     # check_that_all_buses_connected_by_switches_have_same_geodata
     for bus_group in bus_groups_connected_by_switches(net):
         first_bus = list(bus_group)[0]
-        assert all(np.isclose(net.bus_geodata.x.loc[bus_group], net.bus_geodata.x.loc[first_bus]) &
-                   np.isclose(net.bus_geodata.y.loc[bus_group], net.bus_geodata.y.loc[first_bus]))
+        assert all(np.isclose(net.bus_geodata.x.loc[bus_group], net.bus_geodata.x.loc[first_bus])) \
+            and all(np.isclose(net.bus_geodata.y.loc[bus_group], net.bus_geodata.y.loc[first_bus]))
 
     # --- test data content
     # substation

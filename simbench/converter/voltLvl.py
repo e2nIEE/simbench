@@ -84,7 +84,7 @@ def _voltlvl_idx(net, element, voltage_level, branch_bus=None, vn_kv_limits=[145
                 break
 
     if element == "measurement":
-        measurement_buses = Series(index=net.measurement.index)
+        measurement_buses = Series(index=net.measurement.index, dtype=int)
         # bus
         bool_ = net.measurement.element_type == "bus"
         measurement_buses.loc[bool_] = net.measurement.element.loc[bool_]

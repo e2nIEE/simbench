@@ -304,7 +304,7 @@ def _replace_buses_connected_to_busbars(net, buses):
     non_busbars = buses[no_busbar.values]
     bb_sw = net.switch.loc[net.switch.et == "b"]
 
-    new_buses = pd.Series()
+    new_buses = pd.Series(dtype=int)
     for X, Y in zip(["element", "bus"], ["bus", "element"]):
         X_in_nonb = bb_sw[X].isin(non_busbars)
         Y_is_busbar = net.bus.loc[bb_sw[Y]].type.str.contains("busbar").values

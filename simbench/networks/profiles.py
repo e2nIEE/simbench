@@ -237,7 +237,7 @@ def get_absolute_profiles_from_relative_profiles(
             element, profile_column))
         missing_col_handling = "missing_col_handling"
         applied_profiles = pd.Series([missing_col_handling]*net[element].shape[0],
-                                     index=net[element].index)
+                                     index=net[element].index, dtype=object)
         relative_profiles[missing_col_handling] = 1
 
     # nan profile handling

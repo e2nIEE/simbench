@@ -193,7 +193,7 @@ def _get_unique_duplicated_dict(df, subset=None):
     # nan_str only needed since compare_arrays() using old numpy versions connected to python 3.4
     # don't detect reliably nans as equal
     nan_str = "nan"
-    while nan_str in df.values:
+    while nan_str in set(df.values):
         nan_str += "n"
 
     for uni in uniq:
@@ -261,7 +261,7 @@ def append_str_by_underline_count(str_series, append_only_duplicates=False, coun
     # --- initalizations
     # ensure only unique values in reserved_strings:
     reserved_strings = pd.Series(sorted(set(reserved_strings))) if reserved_strings is not None \
-        else pd.Series()
+        else pd.Series(dtype=object)
     count = counting_start
 
     # --- do first append
