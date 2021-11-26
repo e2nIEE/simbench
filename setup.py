@@ -5,13 +5,13 @@
 from setuptools import setup, find_packages
 import re
 
-with open('README.md', 'rb') as f:
+with open('README.rst', 'rb') as f:
     install = f.read().decode('utf-8')
 
 with open('CHANGELOG.rst', 'rb') as f:
     changelog = f.read().decode('utf-8')
 
-with open('README.md', 'rb') as f:
+with open('README.rst', 'rb') as f:
     readme = f.read().decode('utf-8')
 
 classifiers = [
@@ -39,7 +39,7 @@ setup(
     author_email='steffen.meinecke@uni-kassel.de',
     description='Electrical Power System Benchmark Models',
     long_description=readme,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     url='http://www.simbench.de/en',
     license='odbl',
     install_requires=["pandapower>=2.5"],
