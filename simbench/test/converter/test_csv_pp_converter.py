@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-# Copyright (c) 2019 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -226,11 +224,15 @@ def test_example_simple():
     net_from_csv_data = csv_data2pp(csv_data)
 
     # --- adjust net appearance
+    net_from_csv_data.converged = net.converged
     pp.drop_buses(net, [to_drop])
     del net["OPF_converged"]
     net.load["type"] = np.nan
     del net_from_csv_data["substation"]
     del net_from_csv_data["profiles"]
+    if "power_station_trafo" in net.gen.columns:
+        assert net.gen["power_station_trafo"].isnull().all()
+        del net.gen["power_station_trafo"]
     for key in net.keys():
         if isinstance(net[key], pd.DataFrame):
             # drop unequal columns
@@ -250,6 +252,14 @@ def test_example_simple():
                         key].dtypes))
                 except:
                     logger.error("dtype adjustment of %s failed." % key)
+    # compare std_types as dataframes -> allow tolerance
+    for key, vals in net["std_types"].items():
+        net["std_types|%s" % key] = pd.DataFrame(vals).T.apply(pd.to_numeric, errors='ignore')
+    del net["std_types"]
+    for key, vals in net_from_csv_data["std_types"].items():
+        net_from_csv_data["std_types|%s" % key] = pd.DataFrame(vals).T.apply(
+            pd.to_numeric, errors='ignore')
+    del net_from_csv_data["std_types"]
 
     eq = pp.nets_equal(net, net_from_csv_data, tol=1e-7)
     assert eq

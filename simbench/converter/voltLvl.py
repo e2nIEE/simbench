@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-# Copyright (c) 2019 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -84,7 +82,7 @@ def _voltlvl_idx(net, element, voltage_level, branch_bus=None, vn_kv_limits=[145
                 break
 
     if element == "measurement":
-        measurement_buses = Series(index=net.measurement.index)
+        measurement_buses = Series(index=net.measurement.index, dtype=int)
         # bus
         bool_ = net.measurement.element_type == "bus"
         measurement_buses.loc[bool_] = net.measurement.element.loc[bool_]

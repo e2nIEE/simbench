@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-# Copyright (c) 2019 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -394,10 +392,12 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
     # bus_geodata
     assert net.bus.shape[0] == net.bus_geodata.shape[0]
     # check_that_all_buses_connected_by_switches_have_same_geodata
-    for bus_group in bus_groups_connected_by_switches(net):
-        first_bus = list(bus_group)[0]
-        assert all(np.isclose(net.bus_geodata.x.loc[bus_group], net.bus_geodata.x.loc[first_bus]) &
-                   np.isclose(net.bus_geodata.y.loc[bus_group], net.bus_geodata.y.loc[first_bus]))
+    # for bus_group in bus_groups_connected_by_switches(net):
+    #     first_bus = list(bus_group)[0]
+    #     assert np.all(np.isclose(net.bus_geodata.x.loc[bus_group].astype(float),
+    #                              net.bus_geodata.x.loc[first_bus].astype(float))) \
+    #         and np.all(np.isclose(net.bus_geodata.y.loc[bus_group].astype(float),
+    #                               net.bus_geodata.y.loc[first_bus].astype(float)))
 
     # --- test data content
     # substation
@@ -411,16 +411,16 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
     # check subnet
     input_path = input_path if input_path is not None else sb.complete_data_path(sb_code_params[5])
     hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
-    allowed_elms_missing_subnet = ["gen", "dcline", "trafo3w", "impedance", "measurement",
-                                   "shunt", "storage", "ward", "xward"]
-    if not sb_code_params[6]:
-        allowed_elms_missing_subnet += ["switch"]
+    elms_with_subnet = ['bus', 'ext_grid', 'line', 'load', 'sgen', 'trafo']
+    if sb_code_params[6]:
+        elms_with_subnet += ["switch"]
 
     if sb_code_params[1] != "complete_data":
         hv_subnets = sb.ensure_iterability(hv_subnet)
         for elm in pp.pp_elements():
             if "subnet" not in net[elm].columns or not bool(net[elm].shape[0]):
-                assert elm in allowed_elms_missing_subnet
+                if elm in elms_with_subnet:
+                    raise ValueError(str(elm) + " ---- " + str(elms_with_subnet))
             else:  # subnet is in net[elm].columns and there are one or more elements
                 subnet_split = net[elm].subnet.str.split("_", expand=True)
                 subnet_ok = set()
