@@ -1,7 +1,7 @@
 
 <img src=https://simbench.de/wp-content/uploads/2019/01/logo.png align="left" width="300" alt="SimBench logo" target=https://www.simbench.net>
 
-<br>
+<br><br><br>
 
 [![pypi package](https://badge.fury.io/py/simbench.svg)](https://pypi.python.org/pypi/simbench) [![python](https://img.shields.io/pypi/pyversions/simbench.svg)](https://pypi.python.org/pypi/simbench) [![docs](https://readthedocs.org/projects/simbench/badge/?version=stable)](http://simbench.readthedocs.io/?badge=stable) [![simbench](https://github.com/e2nIEE/simbench/actions/workflows/github_test_action.yml/badge.svg)](https://github.com/e2nIEE/simbench/actions/) [![codecov](https://codecov.io/gh/e2nIEE/simbench/branch/master/graph/badge.svg)](https://codecov.io/github/e2nIEE/simbench?branch=master) [![downloads](https://pepy.tech/badge/simbench)](https://pepy.tech/project/simbench) [![License](https://img.shields.io/badge/License-ODbL-brightgreen.svg)](https://opendatacommons.org/licenses/odbl) [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/e2nIEE/simbench/blob/master/LICENSE)
 
