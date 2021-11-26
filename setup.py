@@ -11,7 +11,7 @@ with open('README.rst', 'rb') as f:
 with open('CHANGELOG.rst', 'rb') as f:
     changelog = f.read().decode('utf-8')
 
-with open('README.rst', 'rb') as f:
+with open('README.md', 'rb') as f:
     readme = f.read().decode('utf-8')
 
 classifiers = [
@@ -38,7 +38,8 @@ setup(
     author='Steffen Meinecke',
     author_email='steffen.meinecke@uni-kassel.de',
     description='Electrical Power System Benchmark Models',
-    long_description=long_description,
+    long_description=readme,
+    long_description_content_type="text/markdown",
     url='http://www.simbench.de/en',
     license='odbl',
     install_requires=["pandapower>=2.5"],
