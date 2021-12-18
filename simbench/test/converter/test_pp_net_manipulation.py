@@ -9,7 +9,7 @@ import pandapower as pp
 from simbench.converter import replace_branch_switches, create_branch_switches
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

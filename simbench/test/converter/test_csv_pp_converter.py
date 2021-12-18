@@ -16,7 +16,7 @@ from simbench.converter import csv2pp, csv_data2pp, pp2csv, pp2csv_data, \
     avoid_duplicates_in_column, merge_busbar_coordinates
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

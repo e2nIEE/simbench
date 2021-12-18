@@ -14,7 +14,7 @@ import pandapower as pp
 from pandapower.plotting import create_generic_coordinates
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
