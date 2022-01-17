@@ -11,7 +11,7 @@ from pandapower.control import ConstControl
 from simbench import csv_tablenames, idx_in_2nd_array, merge_dataframes
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

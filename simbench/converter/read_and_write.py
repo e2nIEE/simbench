@@ -7,7 +7,7 @@ import pandas as pd
 import os
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

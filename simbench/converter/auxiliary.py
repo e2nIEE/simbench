@@ -9,7 +9,7 @@ from packaging import version
 from pandapower import compare_arrays
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

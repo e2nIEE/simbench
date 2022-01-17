@@ -8,7 +8,7 @@ import pandapower as pp
 from copy import deepcopy
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
