@@ -40,9 +40,9 @@ def run_all_tests(parallel=False, n_cpu=None):
     if parallel:
         if n_cpu is None:
             n_cpu = _get_cpus()
-        pytest.main([test_dir, "-xs", "-n", n_cpu])
+        pytest.main([test_dir, "-s", "-n", n_cpu])
     else:
-        pytest.main([test_dir, "-xs"])
+        pytest.main([test_dir, "-s"])
     logger.setLevel(logging.INFO)
 
 

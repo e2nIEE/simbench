@@ -21,3 +21,4 @@ tutorials/.ipynb_checkpoints
 *.bak
 *.orig
 *.ini
+.vscode/*

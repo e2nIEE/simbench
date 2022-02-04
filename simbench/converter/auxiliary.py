@@ -253,8 +253,8 @@ def append_str_by_underline_count(str_series, append_only_duplicates=False, coun
     """
     # --- initalizations
     # ensure only unique values in reserved_strings:
-    reserved_strings = pd.Series(sorted(set(reserved_strings))) if reserved_strings is not None \
-        else pd.Series(dtype=object)
+    reserved_strings = pd.Series(sorted(set(reserved_strings)), dtype=object) if reserved_strings \
+        is not None else pd.Series(dtype=object)
     count = counting_start
 
     # --- do first append
