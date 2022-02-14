@@ -323,7 +323,7 @@ def generate_no_sw_variant(net):
 
     # replace auxiliary type of buses with no switch connected anymore
     aux_buses = net.bus.index[net.bus.type == "auxiliary"]
-    buses_at_sw = net.switch.bus.append(net.switch.element.loc[net.switch.et == "b"])
+    buses_at_sw = pd.concat([net.switch.bus, net.switch.element.loc[net.switch.et == "b"]])
     aux_buses_to_change_type = aux_buses[~aux_buses.isin(buses_at_sw)]
     net.bus.type.loc[aux_buses_to_change_type] = "b"
 

@@ -111,11 +111,11 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                 elm_to_append["parallel"] = 1
                 num_par = list(net[element].parallel.loc[parallels])
                 elm_to_append["name"] += [("_" + str(num)) for num in num_par]
-                net[element] = net[element].append(
-                    pd.DataFrame(elm_to_append.values, columns=net[element].columns),
+                net[element] = pd.concat([net[element],
+                    pd.DataFrame(elm_to_append.values, columns=net[element].columns)],
                     ignore_index=True)
-                net["res_"+element] = net["res_"+element].append(
-                    pd.DataFrame(res_elm_to_append.values, columns=net["res_"+element].columns),
+                net["res_"+element] = pd.concat([net["res_"+element],
+                    pd.DataFrame(res_elm_to_append.values, columns=net["res_"+element].columns)],
                     ignore_index=True)
 
                 # add parallel switches
@@ -124,8 +124,8 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                         net.switch.et == element[0])]  # does not work for trafo3w
                     sw_to_append["element"] = n_elm + i
                     sw_to_append["name"] += "_" + str(num_par[i])
-                    net["switch"] = net["switch"].append(
-                            pd.DataFrame(sw_to_append.values, columns=net["switch"].columns),
+                    net["switch"] = pd.concat([net["switch"],
+                            pd.DataFrame(sw_to_append.values, columns=net["switch"].columns)],
                             ignore_index=True)
                 # update parallels
                 parallels = net[element].index[net[element].parallel > 1]
