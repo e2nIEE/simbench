@@ -193,8 +193,8 @@ def merge_busbar_coordinates(net):
             continue
         connected_nodes = pp.get_connected_buses(net, bb_node, consider=("t", "s"))
         if len(connected_nodes):
-            net.bus_geodata.x.loc[connected_nodes] = net.bus_geodata.x.at[bb_node]
-            net.bus_geodata.y.loc[connected_nodes] = net.bus_geodata.y.at[bb_node]
+            net.bus_geodata.x.loc[list(connected_nodes)] = net.bus_geodata.x.at[bb_node]
+            net.bus_geodata.y.loc[list(connected_nodes)] = net.bus_geodata.y.at[bb_node]
             all_connected_buses |= connected_nodes
 
 
