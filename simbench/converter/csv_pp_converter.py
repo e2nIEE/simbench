@@ -748,7 +748,7 @@ def _rename_and_multiply_columns(data):
             factors = to_multiply.iloc[:, 1].values
             if _is_pp_type(data):
                 factors = 1/factors
-            data[corr_str].loc[:, col] *= factors
+            data[corr_str][col] *= factors
 
 
 def _get_parameters_to_rename_and_multiply():
