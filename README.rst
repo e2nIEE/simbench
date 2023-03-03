@@ -21,8 +21,8 @@
    :target: https://github.com/e2nIEE/simbench/actions/
    :alt: GitHub Actions
 
-.. image:: https://codecov.io/gh/e2nIEE/simbench/branch/master/graph/badge.svg
-   :target: https://codecov.io/github/e2nIEE/simbench?branch=master
+.. image:: https://codecov.io/github/e2nIEE/simbench/coverage.svg?branch=master
+   :target: https://app.codecov.io/github/e2nIEE/simbench?branch=master
    :alt: codecov
 
 .. image:: https://pepy.tech/badge/simbench

@@ -559,7 +559,7 @@ def move_slack_gens_to_ext_grid(net):
 
 def ensure_bus_index_columns_as_int(net):
     """ Ensures that all columns with bus indices, e.g. net.line.from_bus, have int as dtype. """
-    ebts = pp.element_bus_tuples(bus_elements=True, branch_elements=True, res_elements=False)
+    ebts = set(pp.element_bus_tuples(bus_elements=True, branch_elements=True, res_elements=False))
     ebts |= {("switch", "element"), ("measurement", "element")}
     for elm, bus in ebts:
         net[elm][bus] = net[elm][bus].astype(int)
