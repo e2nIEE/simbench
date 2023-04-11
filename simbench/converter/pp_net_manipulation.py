@@ -119,7 +119,7 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                     ignore_index=True)
 
                 # add parallel switches
-                for i, par in pd.Series(parallels).iteritems():
+                for i, par in enumerate(parallels):
                     sw_to_append = net.switch.loc[(net.switch.element == par) & (
                         net.switch.et == element[0])]  # does not work for trafo3w
                     sw_to_append["element"] = n_elm + i

@@ -159,10 +159,10 @@ def test_test_network():
     # test min/max ratio
     for elm in pp.pp_elements(bus=False, branch_elements=False, other_elements=False):
         if "min_p_mw" in net[elm].columns and "max_p_mw" in net[elm].columns:
-            isnull = net[elm][["min_p_mw", "max_p_mw"]].isnull().any(1)
+            isnull = net[elm][["min_p_mw", "max_p_mw"]].isnull().any(axis=1)
             assert (net[elm].min_p_mw[~isnull] <= net[elm].max_p_mw[~isnull]).all()
         if "min_q_mvar" in net[elm].columns and "max_q_mvar" in net[elm].columns:
-            isnull = net[elm][["min_q_mvar", "max_q_mvar"]].isnull().any(1)
+            isnull = net[elm][["min_q_mvar", "max_q_mvar"]].isnull().any(axis=1)
             assert (net[elm].min_q_mvar[~isnull] <= net[elm].max_q_mvar[~isnull]).all()
 
     pp2csv(net, test_output_folder_path, export_pp_std_types=False, drop_inactive_elements=False)
