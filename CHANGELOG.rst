@@ -1,6 +1,11 @@
 Change Log
 =============
 
+[upcoming release] - 2023-xx-xx
+----------------------
+- [CHANGED] pandas 2.0 support
+- [CHANGED] pandapower 2.12.1 support
+
 [1.3.0] - 2021-11-25
 ----------------------
 

@@ -43,6 +43,7 @@ setup(
     long_description_content_type="text/x-rst",
     url='http://www.simbench.de/en',
     license='odbl',
+    python_requires='>=3.8',
     install_requires=requirements,
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme"],
                     "tutorials": ["matplotlib"],
