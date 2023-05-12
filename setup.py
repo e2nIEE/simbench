@@ -35,7 +35,7 @@ long_description = '\n\n'.join((readme, changelog))
 
 setup(
     name='simbench',
-    version='1.4.0',
+    version='1.4.0.post1',
     author='Steffen Meinecke',
     author_email='steffen.meinecke@uni-kassel.de',
     description='Electrical Power System Benchmark Models',
