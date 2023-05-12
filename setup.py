@@ -46,6 +46,7 @@ setup(
     python_requires='>=3.8',
     install_requires=requirements,
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme"],
+                    "plotting": ["matplotlib"],
                     "tutorials": ["matplotlib"],
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "matplotlib"]},
     packages=find_packages(),
