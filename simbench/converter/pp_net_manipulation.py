@@ -8,7 +8,7 @@ import pandapower as pp
 from copy import deepcopy
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -111,21 +111,21 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                 elm_to_append["parallel"] = 1
                 num_par = list(net[element].parallel.loc[parallels])
                 elm_to_append["name"] += [("_" + str(num)) for num in num_par]
-                net[element] = net[element].append(
-                    pd.DataFrame(elm_to_append.values, columns=net[element].columns),
+                net[element] = pd.concat([net[element],
+                    pd.DataFrame(elm_to_append.values, columns=net[element].columns)],
                     ignore_index=True)
-                net["res_"+element] = net["res_"+element].append(
-                    pd.DataFrame(res_elm_to_append.values, columns=net["res_"+element].columns),
+                net["res_"+element] = pd.concat([net["res_"+element],
+                    pd.DataFrame(res_elm_to_append.values, columns=net["res_"+element].columns)],
                     ignore_index=True)
 
                 # add parallel switches
-                for i, par in pd.Series(parallels).iteritems():
+                for i, par in enumerate(parallels):
                     sw_to_append = net.switch.loc[(net.switch.element == par) & (
                         net.switch.et == element[0])]  # does not work for trafo3w
                     sw_to_append["element"] = n_elm + i
                     sw_to_append["name"] += "_" + str(num_par[i])
-                    net["switch"] = net["switch"].append(
-                            pd.DataFrame(sw_to_append.values, columns=net["switch"].columns),
+                    net["switch"] = pd.concat([net["switch"],
+                            pd.DataFrame(sw_to_append.values, columns=net["switch"].columns)],
                             ignore_index=True)
                 # update parallels
                 parallels = net[element].index[net[element].parallel > 1]
@@ -193,8 +193,8 @@ def merge_busbar_coordinates(net):
             continue
         connected_nodes = pp.get_connected_buses(net, bb_node, consider=("t", "s"))
         if len(connected_nodes):
-            net.bus_geodata.x.loc[connected_nodes] = net.bus_geodata.x.at[bb_node]
-            net.bus_geodata.y.loc[connected_nodes] = net.bus_geodata.y.at[bb_node]
+            net.bus_geodata.x.loc[list(connected_nodes)] = net.bus_geodata.x.at[bb_node]
+            net.bus_geodata.y.loc[list(connected_nodes)] = net.bus_geodata.y.at[bb_node]
             all_connected_buses |= connected_nodes
 
 
@@ -559,7 +559,7 @@ def move_slack_gens_to_ext_grid(net):
 
 def ensure_bus_index_columns_as_int(net):
     """ Ensures that all columns with bus indices, e.g. net.line.from_bus, have int as dtype. """
-    ebts = pp.element_bus_tuples(bus_elements=True, branch_elements=True, res_elements=False)
+    ebts = set(pp.element_bus_tuples(bus_elements=True, branch_elements=True, res_elements=False))
     ebts |= {("switch", "element"), ("measurement", "element")}
     for elm, bus in ebts:
         net[elm][bus] = net[elm][bus].astype(int)

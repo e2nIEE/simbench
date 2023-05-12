@@ -1,6 +1,12 @@
 Change Log
 =============
 
+[1.4.0] - 2023-05-12
+----------------------
+- [CHANGED] pandas 2.0 support
+- [CHANGED] pandapower 2.12.1 support
+- [ADDED] GitHub Actions Workflow (:code:`release.yml`) to automate the SimBench release process
+
 [1.3.0] - 2021-11-25
 ----------------------
 

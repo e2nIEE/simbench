@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import time
 import pandapower as pp
+from pandapower.auxiliary import _preserve_dtypes
 from pandapower.topology import unsupplied_buses
 
 from simbench import sb_dir
@@ -16,7 +17,7 @@ import simbench as sb
 from simbench.networks.extract_simbench_grids_from_csv import \
     _get_extracted_csv_data_from_dict
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -275,6 +276,8 @@ def test_generate_no_sw_variant():
     net_orig = _net_for_testing()
     net = deepcopy(net_orig)
     sb.generate_no_sw_variant(net)
+    for elm in ["line", "trafo"]:
+        _preserve_dtypes(net[elm], net_orig[elm].dtypes)
     assert (net.bus.name.values == net_orig.bus.name.loc[net.bus.index.difference(
             [1, 6])].values).all()
     assert pp.dataframes_equal(net.line, net_orig.line)
@@ -515,7 +518,7 @@ def test_get_all_simbench_profiles():
 
 if __name__ == '__main__':
     if 0:
-        pytest.main([__file__, "-xs"])
+        pytest.main([__file__, "-s"])
     else:
         # test_get_bus_bus_switch_indices_from_csv()
         # test_get_relevant_subnets()

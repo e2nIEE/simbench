@@ -5,6 +5,7 @@
 import pytest
 import os
 from copy import deepcopy
+from packaging import version
 import numpy as np
 import pandas as pd
 import pandapower as pp
@@ -16,7 +17,7 @@ from simbench.converter import csv2pp, csv_data2pp, pp2csv, pp2csv_data, \
     avoid_duplicates_in_column, merge_busbar_coordinates
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -158,10 +159,10 @@ def test_test_network():
     # test min/max ratio
     for elm in pp.pp_elements(bus=False, branch_elements=False, other_elements=False):
         if "min_p_mw" in net[elm].columns and "max_p_mw" in net[elm].columns:
-            isnull = net[elm][["min_p_mw", "max_p_mw"]].isnull().any(1)
+            isnull = net[elm][["min_p_mw", "max_p_mw"]].isnull().any(axis=1)
             assert (net[elm].min_p_mw[~isnull] <= net[elm].max_p_mw[~isnull]).all()
         if "min_q_mvar" in net[elm].columns and "max_q_mvar" in net[elm].columns:
-            isnull = net[elm][["min_q_mvar", "max_q_mvar"]].isnull().any(1)
+            isnull = net[elm][["min_q_mvar", "max_q_mvar"]].isnull().any(axis=1)
             assert (net[elm].min_q_mvar[~isnull] <= net[elm].max_q_mvar[~isnull]).all()
 
     pp2csv(net, test_output_folder_path, export_pp_std_types=False, drop_inactive_elements=False)
@@ -173,7 +174,9 @@ def test_test_network():
     all_eq = True
     for tablename in csv_orig.keys():
         try:
-            eq = pp.dataframes_equal(csv_orig[tablename], csv_exported[tablename], tol=1e-7)
+            params = {"tol": 1e-7} if version.parse(pp.__version__) <= version.parse("2.7.0") else \
+                dict()
+            eq = pp.dataframes_equal(csv_orig[tablename], csv_exported[tablename], **params)
             if not eq:
                 logger.error("csv_orig['%s'] and csv_exported['%s'] differ." % (tablename,
                                                                                 tablename))
@@ -223,28 +226,26 @@ def test_example_simple():
     csv_data = pp2csv_data(net, export_pp_std_types=True, drop_inactive_elements=True)
     net_from_csv_data = csv_data2pp(csv_data)
 
-    # --- adjust net appearance
-    net_from_csv_data.converged = net.converged
+    # --- adjust net appearance / define what should be compared
+    pp_is_27lower = version.parse(pp.__version__) <= version.parse("2.7.0")
+
     pp.drop_buses(net, [to_drop])
-    del net["OPF_converged"]
-    net.load["type"] = np.nan
-    del net_from_csv_data["substation"]
-    del net_from_csv_data["profiles"]
     if "power_station_trafo" in net.gen.columns:
         assert net.gen["power_station_trafo"].isnull().all()
         del net.gen["power_station_trafo"]
+    net.load["type"] = np.nan
+
+    # compare std_types as dataframes
+    for netx in [net, net_from_csv_data]:
+        for key, vals in netx["std_types"].items():
+            netx[f"std_types|{key}"] = pd.DataFrame(vals).T.apply(pd.to_numeric, errors='ignore')
+
     for key in net.keys():
         if isinstance(net[key], pd.DataFrame):
             # drop unequal columns
             dummy_columns = net[key].columns
             extra_columns = net_from_csv_data[key].columns.difference(dummy_columns)
             net_from_csv_data[key].drop(columns=extra_columns, inplace=True)
-            # drop result table rows
-            if "res_" in key:
-                if not key == "res_bus":
-                    net[key].drop(net[key].index, inplace=True)
-                else:
-                    net[key].loc[:, ["p_mw", "q_mvar"]] = np.nan
             # adjust dtypes
             if net[key].shape[0]:
                 try:
@@ -252,16 +253,35 @@ def test_example_simple():
                         key].dtypes))
                 except:
                     logger.error("dtype adjustment of %s failed." % key)
-    # compare std_types as dataframes -> allow tolerance
-    for key, vals in net["std_types"].items():
-        net["std_types|%s" % key] = pd.DataFrame(vals).T.apply(pd.to_numeric, errors='ignore')
-    del net["std_types"]
-    for key, vals in net_from_csv_data["std_types"].items():
-        net_from_csv_data["std_types|%s" % key] = pd.DataFrame(vals).T.apply(
-            pd.to_numeric, errors='ignore')
-    del net_from_csv_data["std_types"]
+            # drop result table rows
+            if pp_is_27lower and "res_" in key:
+                if not key == "res_bus":
+                    net[key].drop(net[key].index, inplace=True)
+                else:
+                    net[key].loc[:, ["p_mw", "q_mvar"]] = np.nan
 
-    eq = pp.nets_equal(net, net_from_csv_data, tol=1e-7)
+    # --- for pp2.7.1 and newer
+    if not pp_is_27lower:
+        name_selection = [key for key in net.keys() if key.startswith("std_types|")]
+        for elm in sorted(pp.pp_elements()):
+            if net[elm].shape[0] == net_from_csv_data[elm].shape[0] == 0:
+                assert not len(net[elm].columns.symmetric_difference(
+                    net_from_csv_data[elm].columns))
+            else:
+                name_selection.append(elm)
+        eq = pp.nets_equal(net, net_from_csv_data, name_selection=name_selection,
+                           check_without_results=True)
+
+    # --- for older pp versions
+    else:
+        net_from_csv_data.converged = net.converged
+        del net["OPF_converged"]
+        del net_from_csv_data["substation"]
+        del net_from_csv_data["profiles"]
+        del net["std_types"]
+        del net_from_csv_data["std_types"]
+
+        eq = pp.nets_equal(net, net_from_csv_data, tol=1e-7)
     assert eq
 
 

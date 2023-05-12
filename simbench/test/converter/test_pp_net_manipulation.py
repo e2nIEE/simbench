@@ -4,12 +4,14 @@
 
 import pytest
 from copy import deepcopy
+from packaging import version
 import pandas as pd
 import pandapower as pp
+from pandapower.auxiliary import _preserve_dtypes
 from simbench.converter import replace_branch_switches, create_branch_switches
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -76,8 +78,13 @@ def test_branch_switch_changes():
 
     net2 = deepcopy(net1)
     create_branch_switches(net2)
+    for elm in ["line", "trafo"]:
+        _preserve_dtypes(net2[elm], net_orig[elm].dtypes)
 
-    assert pp.nets_equal(net_orig, net2, tol=1e-7)
+    if version.parse(pp.__version__) <= version.parse("2.7.0"):
+        assert pp.nets_equal(net_orig, net2, tol=1e-7)
+    else:
+        assert pp.nets_equal(net_orig, net2)
 
 
 if __name__ == "__main__":

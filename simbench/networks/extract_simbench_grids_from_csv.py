@@ -16,7 +16,7 @@ from simbench import csv_data2pp, read_csv_data, csv_tablenames, idx_in_2nd_arra
     ensure_iterability, pp_profile_names
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -99,7 +99,7 @@ def _simple_lv_subnets_determination(sb_code_parameters, hv_subnet, hv_grid_numb
             (pd.Series(lv_types.index.str[:2]).str.upper() == sb_code_parameters[2]).values]
 
         lv_subnet_list = []
-        for type_, number in filtered_lv_types.iteritems():
+        for type_, number in filtered_lv_types.items():
             if type_[:2].upper() == sb_code_parameters[2]:
                 if type_[3:] in _grid_number_dict()[sb_code_parameters[2]].keys():
                     lv_subnet_list += [sb_code_parameters[2] + str(_grid_number_dict()[
@@ -323,7 +323,7 @@ def generate_no_sw_variant(net):
 
     # replace auxiliary type of buses with no switch connected anymore
     aux_buses = net.bus.index[net.bus.type == "auxiliary"]
-    buses_at_sw = net.switch.bus.append(net.switch.element.loc[net.switch.et == "b"])
+    buses_at_sw = pd.concat([net.switch.bus, net.switch.element.loc[net.switch.et == "b"]])
     aux_buses_to_change_type = aux_buses[~aux_buses.isin(buses_at_sw)]
     net.bus.type.loc[aux_buses_to_change_type] = "b"
 

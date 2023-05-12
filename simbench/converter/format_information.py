@@ -6,7 +6,7 @@ from numpy import pi
 from pandas import DataFrame
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

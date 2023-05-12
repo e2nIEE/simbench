@@ -14,7 +14,7 @@ import pandapower as pp
 from pandapower.plotting import create_generic_coordinates
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -574,7 +574,8 @@ def _pp_types_to_csv1(net, export_pp_std_types):
             pp_typenames = set(dummy_net.std_types[elm].keys())
             unused_pp_typenames = pp_typenames - set(net[elm].std_type.unique())
             typenames2convert = set(net.std_types[elm].keys()) - unused_pp_typenames
-        net.std_types[elm] = pd.DataFrame(net.std_types[elm]).T.loc[typenames2convert].reset_index()
+        net.std_types[elm] = pd.DataFrame(net.std_types[elm]).T.loc[list(
+            typenames2convert)].reset_index()
         net.std_types[elm].rename(columns={"index": "std_type"}, inplace=True)
 
     convert_line_type_acronym(net)

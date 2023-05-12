@@ -6,7 +6,7 @@ from simbench import get_voltlvl
 from simbench.converter.csv_pp_converter import _is_pp_type
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
