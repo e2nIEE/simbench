@@ -45,7 +45,7 @@ jobs:
         if: inputs.upload_server == 'testpypi'
         run: |
           python3 setup.py sdist --formats=zip
-          twine check dist/* --strict 
+          twine check dist/* --strict
           python3 -m twine upload dist/*
         env:
           TWINE_USERNAME: __token__
@@ -57,17 +57,17 @@ jobs:
         if: inputs.upload_server == 'pypi'
         run: |
           python3 setup.py sdist --formats=zip
-          twine check dist/* --strict 
+          twine check dist/* --strict
           python3 -m twine upload dist/*
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI }}
           TWINE_REPOSITORY: pypi
 
-      - name: Sleep for 300s to make release available
+      - name: Sleep for 60s to make release available
         uses: juliangruber/sleep-action@v1
         with:
-          time: 300s
+          time: 60s
 
 
   build:
