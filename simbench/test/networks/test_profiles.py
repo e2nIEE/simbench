@@ -122,7 +122,7 @@ if __name__ == '__main__':
     if 0:
         pytest.main(["test_profiles.py", "-xs"])
     else:
-#        test_dismantle_dict_values()
-#        test_missing_profiles()
-#        test_get_absolute_profiles_from_relative_profiles()
-        pass
+    #    test_dismantle_dict_values()
+    #    test_missing_profiles()
+    #    test_get_absolute_profiles_from_relative_profiles()
+    pass
