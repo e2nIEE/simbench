@@ -251,13 +251,13 @@ if __name__ == "__main__":
     if 0:
         pytest.main([__file__, "-xs"])
     else:
-#        test_merge_dataframes()
-#        test_ensure_iterability()
-#        test_idx_in_2nd_array()
-#        test_column_indices()
-#        test_get_unique_duplicated_dict()
-#        test_reindex_dict_dataframes()
-#        test_avoid_duplicates_in_column()
-#        test_append_str_by_underline_count()
+       test_merge_dataframes()
+    #    test_ensure_iterability()
+    #    test_idx_in_2nd_array()
+    #    test_column_indices()
+    #    test_get_unique_duplicated_dict()
+    #    test_reindex_dict_dataframes()
+    #    test_avoid_duplicates_in_column()
+    #    test_append_str_by_underline_count()
 
-        pass
+    pass

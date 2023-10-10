@@ -99,7 +99,7 @@ def _simple_lv_subnets_determination(sb_code_parameters, hv_subnet, hv_grid_numb
             (pd.Series(lv_types.index.str[:2]).str.upper() == sb_code_parameters[2]).values]
 
         lv_subnet_list = []
-        for type_, number in filtered_lv_types.iteritems():
+        for type_, number in filtered_lv_types.items():
             if type_[:2].upper() == sb_code_parameters[2]:
                 if type_[3:] in _grid_number_dict()[sb_code_parameters[2]].keys():
                     lv_subnet_list += [sb_code_parameters[2] + str(_grid_number_dict()[

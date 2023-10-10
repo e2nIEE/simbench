@@ -35,7 +35,7 @@ long_description = '\n\n'.join((readme, changelog))
 
 setup(
     name='simbench',
-    version='1.3.0',
+    version='1.4.0',
     author='Steffen Meinecke',
     author_email='steffen.meinecke@uni-kassel.de',
     description='Electrical Power System Benchmark Models',
@@ -43,8 +43,10 @@ setup(
     long_description_content_type="text/x-rst",
     url='http://www.simbench.de/en',
     license='odbl',
+    python_requires='>=3.8',
     install_requires=requirements,
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme"],
+                    "plotting": ["matplotlib"],
                     "tutorials": ["matplotlib"],
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "matplotlib"]},
     packages=find_packages(),

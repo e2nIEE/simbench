@@ -215,52 +215,46 @@ def get_absolute_profiles_from_relative_profiles(
 
     # --- set index
     index = relative_profiles["time"] if time_as_index else relative_profiles.index
-    if "time" in relative_profiles:
-        del relative_profiles["time"]
 
     # --- do profile_suffix assumptions if profile_suffix is None
     if profile_suffix is None:
+        profile_suffix = ""
         if element == "load":
             if multiplying_column == "p_mw":
                 profile_suffix = "_pload"
             elif multiplying_column == "q_mvar":
                 profile_suffix = "_qload"
-        profile_suffix = "" if profile_suffix is None else profile_suffix
 
-    # --- get relative profiles with respect to each element index
+    # --- get relative profiles
+    relative_profiles_vals = np.ones((len(index), len(net[element])))
     if profile_column in net[element].columns:
         applied_profiles = net[element][profile_column] + profile_suffix
-    else:  # missing profile column
+
+        missing = list(applied_profiles[~applied_profiles.isin(relative_profiles.columns)])
+        if len(missing):
+            raise ValueError("These profiles are set to be applied but are missing in the profiles "
+                             "data: " + str(missings))
+        isna = applied_profiles.isnull()
+        is_not_na_pos = np.arange(len(isna), dtype=int)[~isna.values]
+        relative_profiles_vals[:, is_not_na_pos] = \
+            relative_profiles[list(applied_profiles[~isna])].values
+
+    else:  # warning and assumptions in case of missing profile column
         logger.warning("In %s table, profile column '%s' is missing. Scalings of 1 are assumed." % (
             element, profile_column))
-        missing_col_handling = "missing_col_handling"
-        applied_profiles = pd.Series([missing_col_handling]*net[element].shape[0],
-                                     index=net[element].index, dtype=object)
-        relative_profiles[missing_col_handling] = 1
-
-    # nan profile handling
-    if applied_profiles.isnull().any():
-        logger.debug("There are nan profiles. Scalings of 1 are assumed.")
-        nan_profile_handling = "nan_profile_scaling"
-        assert nan_profile_handling not in relative_profiles.columns
-        applied_profiles.loc[applied_profiles.isnull()] = nan_profile_handling
-        relative_profiles[nan_profile_handling] = 1
-
-    relative_output_profiles = relative_profiles.values[:, idx_in_2nd_array(
-        applied_profiles.values, np.array(relative_profiles.columns))]
 
     # --- get factor to multiply with (consider additional feature of 'multiplying_column')
     if isinstance(multiplying_column, str):
         if multiplying_column in net[element].columns:
             factor = net[element][multiplying_column].values.reshape(1, -1)
         else:
-            raise ValueError("'multiplying_column' %s is not net[%s].columns." % (
+            raise ValueError("'multiplying_column' %s is not in net[%s].columns." % (
                 multiplying_column, element))
     else:
         factor = multiplying_column
 
     # --- multiply relative profiles with factor and return results
-    output_profiles = pd.DataFrame(relative_output_profiles*factor, index=index,
+    output_profiles = pd.DataFrame(relative_profiles_vals*factor, index=index,
                                    columns=net[element].index)
     return output_profiles
 
