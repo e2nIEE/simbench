@@ -101,8 +101,6 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
 
             while len(parallels):
 
-                n_elm = net[element].shape[0]
-
                 # add parallel elements
                 net[element].parallel.loc[parallels] -= 1
                 elm_to_append = net[element].loc[parallels]
@@ -111,22 +109,22 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                 elm_to_append["parallel"] = 1
                 num_par = list(net[element].parallel.loc[parallels])
                 elm_to_append["name"] += [("_" + str(num)) for num in num_par]
-                net[element] = pd.concat([net[element],
-                    pd.DataFrame(elm_to_append.values, columns=net[element].columns)],
-                    ignore_index=True)
-                net["res_"+element] = pd.concat([net["res_"+element],
-                    pd.DataFrame(res_elm_to_append.values, columns=net["res_"+element].columns)],
-                    ignore_index=True)
+                max_idx = net[element].index.max()
+                net[element] = pd.concat([net[element], elm_to_append.set_index(pd.Index(range(
+                    max_idx+1, max_idx+1+len(elm_to_append))))])
+                net["res_"+element] = pd.concat([net["res_"+element], res_elm_to_append.set_index(
+                    pd.Index(range(max_idx+1, max_idx+1+len(res_elm_to_append))))])
 
                 # add parallel switches
                 for i, par in enumerate(parallels):
                     sw_to_append = net.switch.loc[(net.switch.element == par) & (
                         net.switch.et == element[0])]  # does not work for trafo3w
-                    sw_to_append["element"] = n_elm + i
+                    sw_to_append["element"] = max_idx + 1 + i
                     sw_to_append["name"] += "_" + str(num_par[i])
-                    net["switch"] = pd.concat([net["switch"],
-                            pd.DataFrame(sw_to_append.values, columns=net["switch"].columns)],
-                            ignore_index=True)
+                    max_sw_idx = net.switch.index.max()
+                    net["switch"] = pd.concat([net["switch"], sw_to_append.set_index(
+                        pd.Index(range(max_sw_idx+1, max_sw_idx+1+len(sw_to_append))))])
+
                 # update parallels
                 parallels = net[element].index[net[element].parallel > 1]
 

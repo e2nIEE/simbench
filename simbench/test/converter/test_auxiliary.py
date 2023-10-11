@@ -62,16 +62,16 @@ def test_column_indices():
 
 def test_get_unique_duplicated_dict():
     # --- with numeric data
-    A = pd.DataFrame([[8.0, 2, 1, 2.0, 3],
-                      [4.0, 3, 2, 5.0, 2],
-                      [6.0, 4, 2, 3.0, 4],
-                      [8.0, 3, 1, 2.0, 3],
+    A = pd.DataFrame([[8.0,    2, 1, 2.0,    3],
+                      [4.0,    3, 2, 5.0,    2],
+                      [6.0,    4, 2, 3.0,    4],
+                      [8.0,    3, 1, 2.0,    3],
                       [np.nan, 7, 5, np.nan, 2],
-                      [6.0, 4, 2, 3.0, 4],
-                      [8.0, 3, 1, 2.0, 3],
+                      [6.0,    4, 2, 3.0,    4],
+                      [8.0,    3, 1, 2.0,    3],
                       [np.nan, 7, 5, np.nan, 2],
-                      [8.0, 2, 1, 2.0, 3],
-                      [8.0, 2, 1, 2.0, 3]])
+                      [8.0,    2, 1, 2.0,    3],
+                      [8.0,    2, 1, 2.0,    3]])
     dict_ = sb.get_unique_duplicated_dict(A)
     assert dict_ == {0: [8, 9], 1: [], 2: [5], 3: [6], 4: [7]}
     dict_ = sb.get_unique_duplicated_dict(A, subset=[0, 2, 3, 4])
