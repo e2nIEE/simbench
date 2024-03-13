@@ -53,7 +53,7 @@ def test_get_bus_bus_switch_indices_from_csv():
         bool_ = True
     assert bool_
 
-    switch_table.drop(switch_table.index[-1], inplace=True)
+    switch_table = switch_table.drop(switch_table.index[-1])
     try:
         sb.get_bus_bus_switch_indices_from_csv(switch_table, node_table)
         bool_ = False
@@ -61,7 +61,7 @@ def test_get_bus_bus_switch_indices_from_csv():
         bool_ = True
     assert bool_
 
-    switch_table.drop(switch_table.index[-1], inplace=True)
+    switch_table = switch_table.drop(switch_table.index[-1])
     assert sb.get_bus_bus_switch_indices_from_csv(switch_table, node_table) == [0, 5]
 
 

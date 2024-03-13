@@ -185,7 +185,7 @@ def all_voltlvl_idx(net, elms=None, include_empty_elms_dicts=False):
                     bus_types = ["hv_bus", "lv_bus"] if elm == "trafo" else [
                         "hv_bus", "mv_bus", "lv_bus"]
                     for idx in other:
-                        voltage_values = net.bus.vn_kv.loc[net[elm][bus_types].loc[idx]].values
+                        voltage_values = net.bus.loc[net[elm][bus_types].loc[idx], "vn_kv"].values
                         key = "-".join(get_voltlvl(voltage_values).astype(str))
                         if key not in lvl_dicts[elm].keys():
                             lvl_dicts[elm][key] = set()

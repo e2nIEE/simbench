@@ -232,7 +232,7 @@ def _extract_csv_table_by_subnet(csv_table, tablename, relevant_subnets, bus_bus
 
         # --- determine indices to drop and examine dropping
         drop_idx = (set(csv_table.index) - hv_elms - lv_elms) | hv_lv_elms | lv_hv_elms
-        csv_table.drop(drop_idx, inplace=True)
+        csv_table = csv_table.drop(drop_idx)
         no_extraction = False
     else:
         no_extraction = "Profile" not in tablename and "Type" not in tablename and \
@@ -315,7 +315,7 @@ def generate_no_sw_variant(net):
             already_considered |= to_fuse[bus1]
 
     # drop all closed switches (which now also includes all bus-bus switches (see above))
-    net.switch.drop(net.switch.index[net.switch.closed], inplace=True)
+    net.switch = net.switch.drop(net.switch.index[net.switch.closed])
 
     # fuse buses which are connected via bus-bus switches
     for b1, b2 in to_fuse.items():
@@ -325,7 +325,7 @@ def generate_no_sw_variant(net):
     aux_buses = net.bus.index[net.bus.type == "auxiliary"]
     buses_at_sw = pd.concat([net.switch.bus, net.switch.element.loc[net.switch.et == "b"]])
     aux_buses_to_change_type = aux_buses[~aux_buses.isin(buses_at_sw)]
-    net.bus.type.loc[aux_buses_to_change_type] = "b"
+    net.bus.loc[aux_buses_to_change_type, "type"] = "b"
 
 
 def get_simbench_net(sb_code_info, input_path=None):

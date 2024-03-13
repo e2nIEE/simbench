@@ -47,7 +47,7 @@ def _testnet_with_profiles():
                                      ["lPV",  0.1, 0.122543, 0.85, 0.95, 1,  1.015]],
                                     columns=["Study Case", "pload", "qload", "Wind_p", "PV_p",
                                              "RES_p", "Slack_vm"])
-    net["loadcases"].set_index("Study Case", inplace=True)
+    net["loadcases"] = net["loadcases"].set_index("Study Case")
     return net, deepcopy(in_net_profiles)
 
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     if 0:
         pytest.main(["test_profiles.py", "-xs"])
     else:
-    #    test_dismantle_dict_values()
-    #    test_missing_profiles()
-    #    test_get_absolute_profiles_from_relative_profiles()
+        test_dismantle_dict_values()
+        test_missing_profiles()
+        test_get_absolute_profiles_from_relative_profiles()
         pass

@@ -52,7 +52,7 @@ def _ensure_single_switch_at_aux_node_and_copy_vm_setp(csv_data, new_type_name="
     idx_nodes_dupl_sw = csv_data["Node"].index[dupl_node_ids & aux_node_ids]
 
     # rename node type
-    csv_data["Node"].type.loc[idx_nodes_dupl_sw] = new_type_name
+    csv_data["Node"].loc[idx_nodes_dupl_sw, "type"] = new_type_name
 
     for X, Y in zip(["nodeA", "nodeB"], ["nodeB", "nodeA"]):
         # get indices to copy the setpoint
@@ -71,7 +71,7 @@ def _ensure_single_switch_at_aux_node_and_copy_vm_setp(csv_data, new_type_name="
         idx_node_dupl = idx_X_pd.duplicated()
 
         # set setpoint
-        csv_data["Node"].vmSetp.loc[idx_X[idx_node_dupl]] = csv_data["Node"].vmSetp.loc[
+        csv_data["Node"].loc[idx_X[idx_node_dupl], "vmSetp"] = csv_data["Node"].vmSetp.loc[
             idx_Y[idx_node_dupl]].values
 
 
@@ -87,14 +87,14 @@ def _ensure_single_switch_at_aux_node_and_copy_vm_setp(csv_data, new_type_name="
 #    dupl_sw_node = sw_nodes[sw_nodes.duplicated()]
 #    dupl_node_ids = csv_data["Node"].id.isin(dupl_sw_node)
 #    aux_node_ids = csv_data["Node"].type == "auxiliary"
-#    csv_data["Node"].type.loc[dupl_node_ids & aux_node_ids] = new_type_name
+#    csv_data["Node"].loc[dupl_node_ids & aux_node_ids, "type"] = new_type_name
     # naive coding:
 #    aux_ids = csv_data["Node"].id[csv_data["Node"].type == "auxiliary"].values
 #    multi_sw_ids = [aux_id for aux_id in aux_ids if sum(
 #        (csv_data["Switch"].nodeA.values == aux_id) |
 #        (csv_data["Switch"].nodeB.values == aux_id)) > 1]
 #    multi_sw_idx = csv_data["Node"].index[csv_data["Node"].id.isin(multi_sw_ids)]
-#    csv_data["Node"].type.loc[multi_sw_idx] = new_type_name
+#    csv_data["Node"].loc[multi_sw_idx, "type"] = new_type_name
 
 
 def _sort_switch_nodes_and_prepare_element_and_et(csv_data):
@@ -113,9 +113,9 @@ def _sort_switch_nodes_and_prepare_element_and_et(csv_data):
 
     # --- swap nodeA data if there are auxiliary node names
     nodeA_data = deepcopy(csv_data["Switch"].nodeA[nodeA_is_aux_node])
-    csv_data["Switch"].nodeA.loc[nodeA_is_aux_node] = csv_data["Switch"].nodeB[
+    csv_data["Switch"].loc[nodeA_is_aux_node, "nodeA"] = csv_data["Switch"].nodeB[
         nodeA_is_aux_node]
-    csv_data["Switch"].nodeB.loc[nodeA_is_aux_node] = nodeA_data
+    csv_data["Switch"].loc[nodeA_is_aux_node, "nodeB"] = nodeA_data
 
     # --- prepare 'element' and 'et' columns
     csv_data["Switch"]["et"] = "b"
@@ -126,7 +126,7 @@ def _sort_switch_nodes_and_prepare_element_and_et(csv_data):
 def _correct_autoTapSide_of_nonTapTrafos(csv_data):
     for elm in ["Transformer", "Transformer3W"]:
         nonTapTrafos = ~csv_data[elm].autoTap.astype(bool)
-        csv_data[elm].autoTapSide.loc[nonTapTrafos] = None
+        csv_data[elm].loc[nonTapTrafos, "autoTapSide"] = None
 
 
 def _add_phys_type_and_vm_va_setpoints_to_element_tables(csv_data):

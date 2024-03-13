@@ -12,6 +12,7 @@ from copy import deepcopy
 from packaging import version
 import pandapower as pp
 from pandapower.plotting import create_generic_coordinates
+import warnings
 
 try:
     import pandaplan.core.pplog as logging
@@ -124,7 +125,7 @@ def csv_data2pp(csv_data):
     _multi_parameter_determination(csv_data)
     _convert_elements_and_types(csv_data, net)
     create_branch_switches(net)
-    net.bus.type.loc[net.bus.type == "multi_auxiliary"] = "auxiliary"
+    net.bus.loc[net.bus.type == "multi_auxiliary", "type"] = "auxiliary"
     _set_vm_setpoint_to_trafos(net, csv_data)
     _csv_types_to_pp2(net)
     ensure_bus_index_columns_as_int(net)
@@ -235,7 +236,7 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
     if net.bus.shape[0] and not net.bus_geodata.shape[0] or (
             net.bus_geodata.shape[0] != net.bus.shape[0]):
         logger.info("Since there are no or incomplete bus_geodata, generic geodata are assumed.")
-        net.bus_geodata.drop(net.bus_geodata.index, inplace=True)
+        net.bus_geodata = net.bus_geodata.iloc[0:0]
         create_generic_coordinates(net)
     merge_busbar_coordinates(net)
     move_slack_gens_to_ext_grid(net)
@@ -296,7 +297,7 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
 def _round_qLoad_by_voltLvl(csv_data):
     for voltLvl, decimals in zip([2, 4, 6, 7], [2, 3, 4, 6]):
         this_voltLvl = csv_data["Load"].voltLvl <= voltLvl
-        csv_data["Load"]["qLoad"].loc[this_voltLvl] = np.around(csv_data["Load"]["qLoad"].loc[
+        csv_data["Load"].loc[this_voltLvl, "qLoad"] = np.around(csv_data["Load"]["qLoad"].loc[
             this_voltLvl].values, decimals)
 
 
@@ -327,16 +328,16 @@ def convert_node_type(data):
         full_names = {"b": "busbar", "m": "muffe", "n": "node", "db": "double busbar"}
         for short, long in full_names.items():
             fit = data["bus"].type == short
-            data["bus"].type.loc[fit] = long
+            data["bus"].loc[fit, "type"] = long
     else:
         not_auxiliary = ~data["Node"].type.str.contains("auxiliary")
         if sum(not_auxiliary):
             space_split = data["Node"].type[not_auxiliary].str.split(" ", expand=True)
             if 1 in space_split.columns:
-                data["Node"].type.loc[not_auxiliary] = space_split[0].str[0] + \
+                data["Node"].loc[not_auxiliary, "type"] = space_split[0].str[0] + \
                     space_split[1].str[0].fillna("")
             else:
-                data["Node"].type.loc[not_auxiliary] = space_split[0].str[0]
+                data["Node"].loc[not_auxiliary, "type"] = space_split[0].str[0]
 
 
 def convert_line_type_acronym(data):
@@ -356,9 +357,10 @@ def convert_line_type_acronym(data):
 def _convert_measurement(data):
     """ Converts the measurement columns "side", "element", "measurement_type", respectively
         "element1", "element2", "variable". """
-    rename_dict = {"side": "element1", "element": "element2", "measurement_type": "variable"}
     if _is_pp_type(data):
-        data["measurement"].rename(columns=rename_dict, inplace=True)
+        rename_dict = {"side": "element1", "measurement_type": "variable"}
+        data["measurement"] = data["measurement"].rename(columns=rename_dict)
+        data["measurement"]["element2"] = ""
         for element_type in ["trafo", "line", "bus"]:
             idx = data["measurement"].index[data["measurement"]["element_type"] == element_type]
             if element_type in ["trafo", "line"]:
@@ -366,19 +368,20 @@ def _convert_measurement(data):
                 for side in this_branch_measurements["element1"].unique():
                     idx_side = this_branch_measurements.index[
                         this_branch_measurements["element1"] == side]
-                    data["measurement"]["element1"].loc[idx_side] = data.bus.name.loc[data[
-                        element_type][side+"_bus"].loc[data["measurement"]["element2"].loc[
+                    data["measurement"].loc[idx_side, "element1"] = data.bus.name.loc[data[
+                        element_type][side+"_bus"].loc[data["measurement"]["element"].loc[
                             idx_side]]].values
-                data["measurement"]["element2"].loc[idx] = data[element_type].name.loc[data[
-                    "measurement"]["element2"].loc[idx]].values
+                data["measurement"].loc[idx, "element2"] = data[element_type].name.loc[data[
+                    "measurement"]["element"].loc[idx]].values
             else:
-                data["measurement"]["element1"].loc[idx] = data.bus.name.loc[data["measurement"][
-                    "element2"][idx]].values
-                data["measurement"]["element2"].loc[idx] = np.nan
+                data["measurement"].loc[idx, "element1"] = data.bus.name.loc[data["measurement"][
+                    "element"][idx]].values
+        del data["measurement"]["element"]
     else:
+        rename_dict = {"element": "element2", "measurement_type": "variable"}
         _sort_measurement_elements(data)
         rename_dict = {y: x for x, y in rename_dict.items()}
-        data["Measurement"].rename(columns=rename_dict, inplace=True)
+        data["Measurement"] = data["Measurement"].rename(columns=rename_dict)
 
         # --- determine which measurement indices are which element type -> fill "element_type"
         idx_trafo = data["Measurement"].index[data["Measurement"]["element"].isin(data[
@@ -394,24 +397,24 @@ def _convert_measurement(data):
                            "trafo names given in element2 which do not exist in the " +
                            "csv_data[element] table.")
         data["Measurement"]["element_type"] = "bus"
-        data["Measurement"]["element_type"].loc[idx_trafo] = "trafo"
-        data["Measurement"]["element_type"].loc[idx_line] = "line"
+        data["Measurement"].loc[idx_trafo, "element_type"] = "trafo"
+        data["Measurement"].loc[idx_line, "element_type"] = "line"
 
         # --- fill "element" column
-        data["Measurement"]["element"].loc[idx_trafo] = data["Transformer"].index[
+        data["Measurement"].loc[idx_trafo, "element"] = data["Transformer"].index[
             idx_in_2nd_array(data["Measurement"]["element"].loc[idx_trafo].values,
                              data["Transformer"]["id"].values)]
-        data["Measurement"]["element"].loc[idx_line] = data["Line"].index[idx_in_2nd_array(
+        data["Measurement"].loc[idx_line, "element"] = data["Line"].index[idx_in_2nd_array(
             data["Measurement"]["element"].loc[idx_line].values, data["Line"]["id"].values)]
-        data["Measurement"]["element"].loc[idx_bus] = data["Node"].index[idx_in_2nd_array(
-            data["Measurement"]["side"].loc[idx_bus].values, data["Node"]["id"].values)]
+        data["Measurement"].loc[idx_bus, "element"] = data["Node"].index[idx_in_2nd_array(
+            data["Measurement"]["element1"].loc[idx_bus].values, data["Node"]["id"].values)]
 
         # --- fill "side" column
         bus_indices = data["Node"].index[idx_in_2nd_array(data["Measurement"][
-            "side"].values, data["Node"]["id"].values)]
+            "element1"].values, data["Node"]["id"].values)]
         bus_names = pd.Series(data["Node"]["id"].loc[bus_indices].values,
                               index=data["Measurement"].index)
-        data["Measurement"]["side"] = np.nan
+        data["Measurement"]["side"] = ""
         are_hv = ensure_iterability(bus_names.loc[idx_trafo].values == data[
             "Transformer"]["nodeHV"].loc[data["Measurement"]["element"].loc[idx_trafo]].values)
         data["Measurement"].loc[idx_trafo, "side"] = ["hv" if is_hv else "lv" for is_hv in are_hv]
@@ -419,6 +422,8 @@ def _convert_measurement(data):
                 "Line"]["nodeA"].loc[data["Measurement"]["element"].loc[idx_line]].values)
         data["Measurement"].loc[idx_line, "side"] = ["from" if is_from else "to" for is_from in
                                                      are_from]
+        data["Measurement"].loc[data["Measurement"]["side"] == "", "side"] = None
+        del data["Measurement"]["element1"]
 
 
 def _sort_measurement_elements(csv_data):
@@ -432,9 +437,9 @@ def _sort_measurement_elements(csv_data):
                          "indices: " + str(list(idx_both_is_node)))
 
     el1_data = deepcopy(csv_data["Measurement"].element1[idx_el2_is_node])
-    csv_data["Measurement"].element1.loc[idx_el2_is_node] = csv_data["Measurement"].element2[
+    csv_data["Measurement"].loc[idx_el2_is_node, "element1"] = csv_data["Measurement"].element2[
         idx_el2_is_node]
-    csv_data["Measurement"].element2.loc[idx_el2_is_node] = el1_data
+    csv_data["Measurement"].loc[idx_el2_is_node, "element2"] = el1_data
 
 
 def _csv_profiles_to_pp(net, csv_data):
@@ -521,10 +526,10 @@ def _assume_cs_ohl_line_type(line_types_df):
 #    if "type" not line_types_df.columns:
 #        line_types_df["type"] = np.nan
     is_null = line_types_df.type.isnull().values
-    line_types_df.type.loc[line_types_df.index[is_null & is_cs]] = "cs"
+    line_types_df.loc[line_types_df.index[is_null & is_cs], "type"] = "cs"
 
     # assume all other types as ohl
-    line_types_df.type.fillna("ol", inplace=True)
+    line_types_df.type = line_types_df.type.fillna("ol")
 
 
 def _pp_types_to_csv1(net, export_pp_std_types):
@@ -541,7 +546,7 @@ def _pp_types_to_csv1(net, export_pp_std_types):
             else:
                 # if 'std_type' does not exist but 'type', here 'type' is renamed into 'std_type'
                 new_index_dict = {(i): (i if i != "type" else "std_type") for i in net[elm].columns}
-                net[elm].rename(columns=new_index_dict, inplace=True)
+                net[elm].rename = net[elm].rename(columns=new_index_dict)
 
     # --- add new std_types to line, trafo, trafo3w, storage and dcline tables if missing
     type_params = {
@@ -558,7 +563,7 @@ def _pp_types_to_csv1(net, export_pp_std_types):
         uni_dupl_dict = get_unique_duplicated_dict(elms_without_type, subset=type_params[elm])
         for uni, dupl in uni_dupl_dict.items():
             new_typename = net[elm].name.loc[uni] + '_type'
-            net[elm].std_type.loc[[uni]+dupl] = new_typename
+            net[elm].loc[[uni]+dupl, "std_type"] = new_typename
             if elm in ["line", "trafo", "trafo3w"]:
                 pp.create_std_type(net, dict(net[elm].loc[uni, type_params[elm]].T), new_typename,
                                    element=elm, overwrite=False)
@@ -576,7 +581,7 @@ def _pp_types_to_csv1(net, export_pp_std_types):
             typenames2convert = set(net.std_types[elm].keys()) - unused_pp_typenames
         net.std_types[elm] = pd.DataFrame(net.std_types[elm]).T.loc[list(
             typenames2convert)].reset_index()
-        net.std_types[elm].rename(columns={"index": "std_type"}, inplace=True)
+        net.std_types[elm] = net.std_types[elm].rename(columns={"index": "std_type"})
 
     convert_line_type_acronym(net)
 
@@ -738,7 +743,7 @@ def _rename_and_multiply_columns(data):
             elif y in nan_columns:  # rename if the column exists with only nan values
                 to_rename_dict[x] = y
                 del data[corr_str][y]
-        data[corr_str].rename(columns=to_rename_dict, inplace=True)
+        data[corr_str] = data[corr_str].rename(columns=to_rename_dict)
 
         # --- multiply
         to_multiply = pd.DataFrame([(y, m) for _, y, m in ordered_tuples if not pd.isnull(m) and
@@ -759,7 +764,7 @@ def _get_parameters_to_rename_and_multiply():
     _extend_pandapower_net_columns(dummy_net)
     _prepare_res_bus_table(dummy_net)
     for elm in ["dcline"]:
-        dummy_net[elm].rename(columns={"type": "std_type"}, inplace=True)
+        dummy_net[elm] = dummy_net[elm].rename(columns={"type": "std_type"})
     for elm in ["gen", "sgen"]:
         dummy_net[elm]["vm_pu"] = np.nan
         dummy_net[elm]["va_degree"] = np.nan
@@ -831,7 +836,7 @@ def _merge_dcline_and_storage_type_and_element_data(input_data):
                 input_data[corr_str].columns.union(Type_col_except_std_type), axis=1)
         input_data[corr_str].loc[:, Type_col_except_std_type] = input_data[corr_str_type].loc[
             idx_type, Type_col_except_std_type].values
-        input_data[corr_str_type].drop(input_data[corr_str_type].index, inplace=True)
+        input_data[corr_str_type] = input_data[corr_str_type].iloc[0:0]
 
 
 def _copy_data(input_data, output_data):
@@ -843,9 +848,16 @@ def _copy_data(input_data, output_data):
 
     for corr_str, output_name in zip(corr_strings, output_names):
         if corr_str in input_data.keys() and input_data[corr_str].shape[0]:
-            cols_to_copy = list(set(output_data[output_name].columns) &
-                                set(input_data[corr_str].columns))
-            if version.parse(pd.__version__) >= version.parse("0.23.0"):
+            cols_to_copy = list(
+                set(output_data[output_name].columns) &
+                set(input_data[corr_str].columns[~input_data[corr_str].isnull().all()]))
+            if pd.__version__.startswith("2.2."):
+                with warnings.catch_warnings():
+                    warnings.simplefilter(action='ignore', category=FutureWarning)
+                    output_data[output_name] = pd.concat([output_data[output_name], input_data[
+                        corr_str][cols_to_copy]], ignore_index=True, sort=False).reindex(
+                        columns=output_data[output_name].columns)
+            elif version.parse(pd.__version__) >= version.parse("0.23.0"):
                 output_data[output_name] = pd.concat([output_data[output_name], input_data[
                     corr_str][cols_to_copy]], ignore_index=True, sort=False).reindex(
                     columns=output_data[output_name].columns)

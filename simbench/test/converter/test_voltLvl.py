@@ -100,8 +100,8 @@ if __name__ == "__main__":
     if 0:
         pytest.main(["test_voltLvl.py", "-xs"])
     else:
-#        test_convert_voltlvl_names()
-#        test_voltlvl_idx()
-#        test_get_voltlvl()
+        # test_convert_voltlvl_names()
+        # test_voltlvl_idx()
+        # test_get_voltlvl()
         test_all_voltlvl_idx()
         pass

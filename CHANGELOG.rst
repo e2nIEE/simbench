@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[x.x.x] - 202x-xx-xx
+----------------------
+- [CHANGED] apply FutureWarnings of pandas 2.2
+
 [1.4.0] - 2023-05-12
 ----------------------
 - [CHANGED] pandas 2.0 support
