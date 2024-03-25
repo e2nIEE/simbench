@@ -29,6 +29,18 @@ def ensure_iterability(var, len_=None):
     return var
 
 
+def to_numeric_ignored_errors(data):
+    if isinstance(data, pd.Series):
+        try:
+            return pd.to_numeric(data)
+        except (ValueError, TypeError):
+            return data
+    elif isinstance(data, pd.DataFrame):
+        return pd.concat([to_numeric_ignored_errors(data[col]) for col in data.columns], axis=1)
+    else:
+        raise TypeError(f"{type(data)=} is not a pandas.Series or a pandas.DataFrame.")
+
+
 def find_idx_by_name(df, column, name):
     idx = df.index[df[column] == name]
     if len(idx) == 0:
@@ -95,13 +107,11 @@ def merge_dataframes(dfs, keep="first", sort_index=True, sort_column=True, colum
         if kwargs["axis"] != 0:
             logger.warning("'axis' is always assumed as zero.")
         kwargs.pop("axis")
-    if "sort" in kwargs:
-        if not kwargs["sort"] == sort_index == sort_column:
-            sort_index = kwargs["sort"]
-            sort_column = kwargs["sort"]
-            if not sort_index or not sort_column:
-                logger.warning("'sort' overwrites 'sort_index' and 'sort_column'.")
-        kwargs.pop("sort")
+    sort = kwargs.get("sort", None)
+    if sort is not None:
+        raise KeyError(
+            "merge_dataframes() does not support parameter 'sort' anymore. Please pass "
+            f"sort_index={sort} and sort_column={sort}.")
 
     # --- set index_column as index
     if column_to_sort is not None:
@@ -211,7 +221,7 @@ def ensure_full_column_data_existence(dict_, tablename, column):
     """
     missing_data = dict_[tablename].index[dict_[tablename][column].isnull()]
     # fill missing data by tablename+index, e.g. "Bus 2"
-    dict_[tablename][column].loc[missing_data] = [tablename + ' %s' % n for n in (
+    dict_[tablename].loc[missing_data, column] = [tablename + ' %s' % n for n in (
             missing_data.values + 1)]
     return dict_[tablename]
 
@@ -219,9 +229,9 @@ def ensure_full_column_data_existence(dict_, tablename, column):
 def avoid_duplicates_in_column(dict_, tablename, column):
     """ Avoids duplicates in given column (as type string) of a dict's DataFrame """
     query = dict_[tablename][column].duplicated(keep=False)
-    for double in dict_[tablename][column].loc[query].unique():
+    for double in dict_[tablename].loc[query, column].unique():
         idx = dict_[tablename][column].index[dict_[tablename][column] == double]
-        dict_[tablename][column].loc[idx] = [double + " (%i)" % i for i in range(len(idx))]
+        dict_[tablename].loc[idx, column] = [double + " (%i)" % i for i in range(len(idx))]
     if sum(dict_[tablename][column].duplicated()):
         raise ValueError("The renaming by 'double + int' was not appropriate to remove all " +
                          "duplicates.")
@@ -285,3 +295,10 @@ def append_str_by_underline_count(str_series, append_only_duplicates=False, coun
     appended_strings.index = str_series.index
     reserved_strings = set(series[all_dupl])
     return appended_strings, reserved_strings
+
+
+def repl_nans_in_obj_cols_to_empty_str(net):
+    for df in net.values():
+        if isinstance(df, pd.DataFrame) and np.prod(df.shape):
+            obj_cols = df.select_dtypes(include=object).columns
+            df[obj_cols] = df[obj_cols].fillna("")

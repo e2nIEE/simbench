@@ -139,7 +139,7 @@ def filter_unapplied_profiles(csv_data):
         applied_profiles.append("time")
         unapplied_profiles = csv_data[prof_tab].columns.difference(applied_profiles)
         logger.debug("These %ss are dropped: " % prof_tab + str(unapplied_profiles))
-        csv_data[prof_tab].drop(unapplied_profiles, axis=1, inplace=True)
+        csv_data[prof_tab] = csv_data[prof_tab].drop(unapplied_profiles, axis=1)
 
 
 def filter_unapplied_profiles_pp(net, named_profiles: bool):
@@ -148,7 +148,7 @@ def filter_unapplied_profiles_pp(net, named_profiles: bool):
         if named_profiles:
             for key in net["profiles"].keys():
                 unused = get_unused_profiles(net, key)
-                net.profiles[key].drop(columns=unused, inplace=True)
+                net.profiles[key] = net.profiles[key].drop(columns=unused)
         else:
             for key in net.profiles.keys():
                 if isinstance(key, tuple):
@@ -158,8 +158,8 @@ def filter_unapplied_profiles_pp(net, named_profiles: bool):
                 else:
                     raise NotImplementedError("The keys of net.profiles are expected as " +
                                               "tuple(element, column) or as str, e.g. 'gen.vm_pu'.")
-                net.profiles[key].drop(columns=net.profiles[key].columns[~net.profiles[
-                    key].columns.isin(net[elm].index)], inplace=True)
+                net.profiles[key] = net.profiles[key].drop(columns=net.profiles[key].columns[
+                    ~net.profiles[key].columns.isin(net[elm].index)])
 
 
 def get_absolute_profiles_from_relative_profiles(
@@ -313,9 +313,9 @@ def get_absolute_values(net, profiles_instead_of_study_cases, **kwargs):
                 Idx_pv = net.sgen.index[net.sgen.type.str.contains("PV").fillna(False)]
                 Idx_sgen = net.sgen.index.difference(Idx_wind.union(Idx_pv))
                 net.sgen["loadcase_type"] = ""
-                net.sgen['loadcase_type'].loc[Idx_wind] = loadcase_type[0]
-                net.sgen['loadcase_type'].loc[Idx_pv] = loadcase_type[1]
-                net.sgen['loadcase_type'].loc[Idx_sgen] = loadcase_type[2]
+                net.sgen.loc[Idx_wind, 'loadcase_type'] = loadcase_type[0]
+                net.sgen.loc[Idx_pv, 'loadcase_type'] = loadcase_type[1]
+                net.sgen.loc[Idx_sgen, 'loadcase_type'] = loadcase_type[2]
             else:
                 net[elm_col[0]]["loadcase_type"] = loadcase_type
 

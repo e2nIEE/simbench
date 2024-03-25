@@ -161,13 +161,13 @@ def write2csv(path, data, mode="w", sep=";", float_format='%g', keys=None, keep=
                     if len(duplicates) and "Type" not in i:
                         logger.info("Writing to table '%s', these duplicated names are " % i +
                                     "dropped: " + str(['%s' % name for name in duplicates.id]))
-                    d.drop(duplicates.index, inplace=True)
-                    d.replace("", "NULL").fillna("NULL").to_csv(this_path, sep, index=index,
+                    d = d.drop(duplicates.index)
+                    d.replace("", "NULL").fillna("NULL").to_csv(this_path, sep=sep, index=index,
                                                                 float_format=float_format)
 
                 else:
                     d.replace("", "NULL").fillna("NULL").to_csv(
-                        this_path, sep, mode=mod, index=index, float_format=float_format,
+                        this_path, sep=sep, mode=mod, index=index, float_format=float_format,
                         header=(file_misses or mod == "w"))
 
             # --- writing Profiles
@@ -182,4 +182,4 @@ def write2csv(path, data, mode="w", sep=";", float_format='%g', keys=None, keep=
                     d_prof = d_prof if nrows is None or d_prof.shape[0] <= nrows else \
                         d_prof.loc[:nrows-1]
                     d_prof.replace("", "NULL").fillna("NULL").to_csv(
-                        this_path, sep, mode="w", index=False, float_format=float_format)
+                        this_path, sep=sep, mode="w", index=False, float_format=float_format)

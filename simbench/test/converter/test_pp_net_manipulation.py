@@ -8,7 +8,8 @@ from packaging import version
 import pandas as pd
 import pandapower as pp
 from pandapower.auxiliary import _preserve_dtypes
-from simbench.converter import replace_branch_switches, create_branch_switches
+from simbench.converter import replace_branch_switches, create_branch_switches, \
+    repl_nans_in_obj_cols_to_empty_str
 
 try:
     import pandaplan.core.pplog as logging
@@ -80,6 +81,9 @@ def test_branch_switch_changes():
     create_branch_switches(net2)
     for elm in ["line", "trafo"]:
         _preserve_dtypes(net2[elm], net_orig[elm].dtypes)
+
+    repl_nans_in_obj_cols_to_empty_str(net_orig)
+    repl_nans_in_obj_cols_to_empty_str(net2)
 
     if version.parse(pp.__version__) <= version.parse("2.7.0"):
         assert pp.nets_equal(net_orig, net2, tol=1e-7)
