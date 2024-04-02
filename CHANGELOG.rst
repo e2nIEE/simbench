@@ -4,6 +4,7 @@ Change Log
 [x.x.x] - 202x-xx-xx
 ----------------------
 - [CHANGED] apply FutureWarnings of pandas 2.2
+- [CHANGED] increase visibility of collect_all_simbench_codes()
 
 [1.4.0] - 2023-05-12
 ----------------------
@@ -15,7 +16,7 @@ Change Log
 ----------------------
 
 - [CHANGED] use GitHub-Ci instead of Travis-CI and update CI to python 3.8 and 3.9
-- [CHANGED] adapt to pandas changes of version 1.2.0: deprecate |&^ as set operations for Index
+- [CHANGED] adapt to pandas changes of version 1.2.0: deprecate set operations for pandas Index
 - [CHANGED] generalize (elm, col) recognizing in profiles dicts
 - [CHANGED] output type of get_applied_profiles() and get_available_profiles() from list to set
 - [ADDED] filter_unapplied_profiles_pp(), get_unused_profiles()
