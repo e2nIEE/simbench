@@ -45,7 +45,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI }}
           TWINE_REPOSITORY: pypi
 
-      - name: Sleep for 150s to make release available
+      - name: Sleep for 300s to make release available
         uses: juliangruber/sleep-action@v2
         with:
           time: 300s
