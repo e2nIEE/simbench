@@ -2,10 +2,11 @@
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
-__version__ = "1.4.0"
-__author__ = "smeinecke"
-
+import importlib.metadata
 import os
+
+__author__ = "smeinecke"
+__version__ = importlib.metadata.version("simbench")
 sb_dir = os.path.dirname(os.path.realpath(__file__))
 
 from simbench.converter import *
