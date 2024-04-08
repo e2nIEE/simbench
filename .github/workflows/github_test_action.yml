@@ -30,7 +30,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install pytest jupyter
-        python -m pip install $GITHUB_WORKSPACE["all"]
+        python -m pip install $GITHUB_WORKSPACE["test"]
     - name: List of installed packages
       run: |
         python -m pip list
@@ -62,8 +62,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install pytest jupyter
-        python -m pip install $GITHUB_WORKSPACE["all"]
+        python -m pip install $GITHUB_WORKSPACE["test"]
     - name: List of installed packages
       run: |
         python -m pip list
@@ -83,8 +82,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest
-          python -m pip install $GITHUB_WORKSPACE["all"]
+          python -m pip install $GITHUB_WORKSPACE["test"]
       - name: List of installed packages
         run: |
           python -m pip list
@@ -104,8 +102,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest
-          python -m pip install $GITHUB_WORKSPACE["all"]
+          python -m pip install $GITHUB_WORKSPACE["test"]
       - name: List of installed packages
         run: |
           python -m pip list
