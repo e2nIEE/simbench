@@ -14,13 +14,12 @@ on:
       - 'CHANGELOG.rst'
 
 jobs:
-  build:
 
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -81,17 +80,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install pytest
-        python -m pip install $GITHUB_WORKSPACE["all"]
-    - name: List of installed packages
-      run: |
-        python -m pip list
-    - name: Test with pytest
-      run: |
-        PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE python -m pytest --nbmake -n=auto --nbmake-timeout=900 "./tutorials"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install $GITHUB_WORKSPACE["all"]
+      - name: List of installed packages
+        run: |
+          python -m pip list
+      - name: Test with pytest
+        run: |
+          PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE python -m pytest --nbmake -n=auto --nbmake-timeout=900 "./tutorials"
 
   tutorial_warnings_tests:
 
@@ -102,17 +101,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install pytest
-        python -m pip install $GITHUB_WORKSPACE["all"]
-    - name: List of installed packages
-      run: |
-        python -m pip list
-    - name: Test with pytest
-      run: |
-        PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE python -m pytest -W error --nbmake -n=auto --nbmake-timeout=900 "./tutorials"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install $GITHUB_WORKSPACE["all"]
+      - name: List of installed packages
+        run: |
+          python -m pip list
+      - name: Test with pytest
+        run: |
+          PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE python -m pytest -W error --nbmake -n=auto --nbmake-timeout=900 "./tutorials"
 
   docs_check:
     runs-on: ubuntu-latest
