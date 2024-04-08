@@ -443,7 +443,7 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
         try:
             pp.runpp(net)
             converged = net.converged
-        except:
+        except pp.LoadflowNotConverged:
             sb_code = sb.get_simbench_code_from_parameters(sb_code_params)
             logger.error("Loadflow not converged with %s" % sb_code)
             converged = False
