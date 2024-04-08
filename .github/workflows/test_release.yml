@@ -55,4 +55,4 @@ jobs:
 
       - name: Test with pytest
         run: |
-          PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE python -m pytest --pyargs simbench.test
+          python -m pytest --pyargs simbench.test
