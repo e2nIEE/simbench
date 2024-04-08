@@ -48,6 +48,6 @@ jobs:
           TWINE_REPOSITORY: pypi
 
       - name: Sleep for 150s to make release available
-        uses: juliangruber/sleep-action@v1
+        uses: juliangruber/sleep-action@v2
         with:
           time: 300s

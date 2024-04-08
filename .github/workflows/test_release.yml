@@ -19,7 +19,6 @@ jobs:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         os:  [ ubuntu-latest, windows-latest ]
-        group: [ 1, 2 ]
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -34,7 +33,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install pytest-split matplotlib geopandas
-          pip install -e .
+          python -m pip install .["all"]
 
       - name: Install specific dependencies (Windows)
         if: matrix.os  == 'windows-latest'
@@ -52,8 +51,8 @@ jobs:
 
       - name: List all installed packages
         run: |
-          pip list
+          python -m pip list
 
       - name: Test with pytest
         run: |
-          pytest --splits 2 --group ${{ matrix.group }} --pyargs simbench.test
+          python -m pytest --pyargs simbench.test

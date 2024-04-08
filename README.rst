@@ -3,8 +3,6 @@
    :target: https://www.simbench.net
    :alt: SimBench logo
 
-|
-
 .. image:: https://badge.fury.io/py/simbench.svg
    :target: https://pypi.python.org/pypi/simbench
    :alt: PyPI
