@@ -130,4 +130,4 @@ jobs:
           pre-build-command: "python -m pip install --upgrade pip;
                               python -m pip install .[docs];"
           build-command: "sphinx-build -b html . _build -W"
-          docs-folder: "d
+          docs-folder: "d"
