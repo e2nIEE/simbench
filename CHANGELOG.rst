@@ -1,10 +1,11 @@
 Change Log
 =============
 
-[x.x.x] - 202x-xx-xx
+[1.5.0] - 2024-04-08
 ----------------------
 - [CHANGED] apply FutureWarnings of pandas 2.2
 - [CHANGED] increase visibility of collect_all_simbench_codes()
+- [CHANGED] setup.py -> pyproject.toml
 
 [1.4.0] - 2023-05-12
 ----------------------
