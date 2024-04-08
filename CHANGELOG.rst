@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[1.5.1] - 2024-04-08
+----------------------
+[FIXED] spelling mistake in pyproject.toml
+
 [1.5.0] - 2024-04-08
 ----------------------
 - [CHANGED] apply FutureWarnings of pandas 2.2
