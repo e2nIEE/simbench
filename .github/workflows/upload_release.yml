@@ -7,8 +7,6 @@ name: upload
 on:
   # Allows you to run this workflow manually from the Actions tab
   push:
-    tags:
-      - 'v*'
     branches:
       - master
 
