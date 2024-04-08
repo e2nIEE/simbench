@@ -69,6 +69,6 @@ if __name__ == '__main__':
     if 0:
         pytest.main(["test_simbench_code.py", "-xs"])
     else:
-#        test_simbench_code_occurance()
-#        test_simbench_code_conversion()
+        test_simbench_code_occurance()
+        test_simbench_code_conversion()
         pass

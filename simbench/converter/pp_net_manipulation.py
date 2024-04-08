@@ -101,32 +101,30 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
 
             while len(parallels):
 
-                n_elm = net[element].shape[0]
-
                 # add parallel elements
-                net[element].parallel.loc[parallels] -= 1
+                net[element].loc[parallels, "parallel"] -= 1
                 elm_to_append = net[element].loc[parallels]
                 parallels_in_res = parallels[parallels.isin(net["res_"+element].index)]
                 res_elm_to_append = net["res_"+element].loc[parallels_in_res]
                 elm_to_append["parallel"] = 1
                 num_par = list(net[element].parallel.loc[parallels])
                 elm_to_append["name"] += [("_" + str(num)) for num in num_par]
-                net[element] = pd.concat([net[element],
-                    pd.DataFrame(elm_to_append.values, columns=net[element].columns)],
-                    ignore_index=True)
-                net["res_"+element] = pd.concat([net["res_"+element],
-                    pd.DataFrame(res_elm_to_append.values, columns=net["res_"+element].columns)],
-                    ignore_index=True)
+                max_idx = net[element].index.max()
+                net[element] = pd.concat([net[element], elm_to_append.set_index(pd.Index(range(
+                    max_idx+1, max_idx+1+len(elm_to_append))))])
+                net["res_"+element] = pd.concat([net["res_"+element], res_elm_to_append.set_index(
+                    pd.Index(range(max_idx+1, max_idx+1+len(res_elm_to_append))))])
 
                 # add parallel switches
                 for i, par in enumerate(parallels):
                     sw_to_append = net.switch.loc[(net.switch.element == par) & (
                         net.switch.et == element[0])]  # does not work for trafo3w
-                    sw_to_append["element"] = n_elm + i
+                    sw_to_append["element"] = max_idx + 1 + i
                     sw_to_append["name"] += "_" + str(num_par[i])
-                    net["switch"] = pd.concat([net["switch"],
-                            pd.DataFrame(sw_to_append.values, columns=net["switch"].columns)],
-                            ignore_index=True)
+                    max_sw_idx = net.switch.index.max()
+                    net["switch"] = pd.concat([net["switch"], sw_to_append.set_index(
+                        pd.Index(range(max_sw_idx+1, max_sw_idx+1+len(sw_to_append))))])
+
                 # update parallels
                 parallels = net[element].index[net[element].parallel > 1]
 
@@ -136,8 +134,8 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
             if element == "line":
                 branches = deepcopy(net[element])
                 swap = branches.from_bus.values > branches.to_bus.values
-                branches.from_bus.loc[swap] = net[element].to_bus.loc[swap]
-                branches.to_bus.loc[swap] = net[element].from_bus.loc[swap]
+                branches.loc[swap, "from_bus"] = net[element].to_bus.loc[swap]
+                branches.loc[swap, "to_bus"] = net[element].from_bus.loc[swap]
             else:
                 branches = net[element]
 
@@ -178,9 +176,9 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                 # drop parallel/duplicated branches if the switches do not differ
                 if not switches_differ:
                     # drop duplicated elements
-                    net[element].parallel.loc[orig.name] += elm.parallel
-                    net[element].drop(idx, inplace=True)
-                    net["switch"].drop(switch_dupl, inplace=True)
+                    net[element].loc[orig.name, "parallel"] += elm.parallel
+                    net[element] = net[element].drop(idx)
+                    net["switch"] = net["switch"].drop(switch_dupl)
 
 
 def merge_busbar_coordinates(net):
@@ -193,8 +191,8 @@ def merge_busbar_coordinates(net):
             continue
         connected_nodes = pp.get_connected_buses(net, bb_node, consider=("t", "s"))
         if len(connected_nodes):
-            net.bus_geodata.x.loc[list(connected_nodes)] = net.bus_geodata.x.at[bb_node]
-            net.bus_geodata.y.loc[list(connected_nodes)] = net.bus_geodata.y.at[bb_node]
+            net.bus_geodata.loc[list(connected_nodes), "x"] = net.bus_geodata.x.at[bb_node]
+            net.bus_geodata.loc[list(connected_nodes), "y"] = net.bus_geodata.y.at[bb_node]
             all_connected_buses |= connected_nodes
 
 
@@ -208,7 +206,7 @@ def provide_subnet_col(net):
         # copy zone to subnet
         net.bus["subnet"] = net.bus.zone
     else:  # fill subnet nan values with zone
-        net.bus.subnet.loc[net.bus.subnet.isnull()] = net.bus.zone.loc[net.bus.subnet.isnull()]
+        net.bus.loc[net.bus.subnet.isnull(), "subnet"] = net.bus.zone.loc[net.bus.subnet.isnull()]
 
     # --- for all elements: if subnet is not avialable but zone, take it from zone.
     for element in net.keys():
@@ -230,12 +228,12 @@ def provide_subnet_col(net):
 
     # --- at trafo switches: use subnet from trafo instead of the bus subnet data:
     trafo_sw = net.switch.index[net.switch.et == "t"]
-    net.switch.subnet.loc[trafo_sw] = net.trafo.subnet.loc[net.switch.element.loc[trafo_sw]].values
+    net.switch.loc[trafo_sw, "subnet"] = net.trafo.subnet.loc[net.switch.element.loc[trafo_sw]].values
 
     # --- at measurements: use branch subnet instead of bus subnet data:
     for branch_type in ["line", "trafo"]:
         meas = net.measurement.index[net.measurement.element_type == branch_type]
-        net.measurement.subnet.loc[meas] = net[branch_type].subnet.loc[net.measurement.element.loc[
+        net.measurement.loc[meas, "subnet"] = net[branch_type].subnet.loc[net.measurement.element.loc[
             meas]].values
 
 
@@ -247,7 +245,7 @@ def provide_voltLvl_col(net):
         net.bus["voltLvl"] = get_voltlvl(net.bus.vn_kv)
     else:  # fill voltLvl nan values with vn_kv information
         idx_nan = net.bus.index[net.bus.voltLvl.isnull()]
-        net.bus.voltLvl.loc[idx_nan] = get_voltlvl(net.bus.vn_kv.loc[idx_nan])
+        net.bus.loc[idx_nan, "voltLvl"] = get_voltlvl(net.bus.vn_kv.loc[idx_nan])
 
     # --- provide voltLvl parameters for all elements
     # add voltLvl column from node to all elements but "trafo"
@@ -286,12 +284,12 @@ def _add_dspf_calc_type_and_phys_type_columns(net):
                 net[gen_table]["slack_weight"] = 1/net[gen_table].shape[0]
             else:
                 net[gen_table]["slack_weight"] = 0
-        net[gen_table].rename(columns={"slack_weight": "dspf"}, inplace=True)
+        net[gen_table] = net[gen_table].rename(columns={"slack_weight": "dspf"})
         if phys_type is not None:
             if "phys_type" not in net[gen_table].columns:
                 net[gen_table]["phys_type"] = phys_type
             else:
-                net[gen_table]["phys_type"].loc[net[gen_table]["phys_type"].isnull()] = phys_type
+                net[gen_table].loc[net[gen_table]["phys_type"].isnull(), "phys_type"] = phys_type
         net[gen_table]["calc_type"] = calc_type
 
 
@@ -324,6 +322,10 @@ def _replace_buses_connected_to_busbars(net, buses):
 def _add_vm_va_setpoints_to_buses(net):
     """ Adds "vmSetp" and "vaSetp" to pp net bus table and removes vm_pu from net.ext_grid,
         net.gen and net.sgen. """
+    try:
+        pd.set_option('future.no_silent_downcasting', True)
+    except:
+        pass
     net.bus.loc[net.ext_grid.bus, "vmSetp"] = net.ext_grid.vm_pu.values
     net.bus.loc[net.ext_grid.bus, "vaSetp"] = net.ext_grid.va_degree.values
     for elm, bus_type, param in zip(
@@ -333,13 +335,13 @@ def _add_vm_va_setpoints_to_buses(net):
         if "trafo" not in elm:
             buses = net[elm][bus_type]
         else:
-            autotap_trafos = net[elm].autoTap.fillna(False).astype(bool)
-            autoTapSide = net[elm].autoTapSide.fillna(False).astype(bool)
+            autotap_trafos = _as_bool_filled_na(net[elm].autoTap)
+            autoTapSide = _as_bool_filled_na(net[elm].autoTapSide)
             if not all(autotap_trafos == autoTapSide):
                 logger.warning("'autotap_trafos' is not equal to 'autoTapSide'. \n" +
                                "'autotap_trafos.sum()' is %i, " % autotap_trafos.sum() +
                                "'autoTapSide.sum()' is %i" % autoTapSide.sum())
-            autoTapSetp = net[elm].autoTapSetp.fillna(False).astype(bool)
+            autoTapSetp = _as_bool_filled_na(net[elm].autoTapSetp)
             if not all(autotap_trafos == autoTapSetp):
                 logger.warning("'autotap_trafos' is not equal to 'autoTapSetp'. \n" +
                                "'autotap_trafos.sum()' is %i, " % autotap_trafos.sum() +
@@ -354,7 +356,7 @@ def _add_vm_va_setpoints_to_buses(net):
             buses = _replace_buses_connected_to_busbars(net, buses)
         no_vm = pd.isnull(net.bus.loc[buses, "vmSetp"]).values
         net.bus.loc[buses.loc[no_vm], "vmSetp"] = net[elm][param].loc[
-            buses.index[no_vm]].values
+            buses.index[no_vm]].values.astype(float)
         if sum(~no_vm):
             logger.debug("At buses " + str(list(buses.loc[~no_vm])) + " %s " % elm +
                          "have a vm setpoint which is not considered, since another element " +
@@ -366,12 +368,20 @@ def _add_vm_va_setpoints_to_buses(net):
             del net[elm]["vm_pu"]
 
 
+def _as_bool_filled_na(ser):
+    isn = ser.isnull()
+    out = ser.astype(bool)
+    out.loc[isn] = False
+    return out
+
+
 def _set_vm_setpoint_to_trafos(net, csv_data):
     """ Adds 'autoTapSetp' to trafo and trafo3w tables. """
     for elm in ["trafo", "trafo3w"]:
         if "autoTap" in net[elm] and "autoTapSide" in net[elm]:
-            autotap_trafos = net[elm].autoTap.fillna(False).astype(bool)
-            assert all(autotap_trafos == net[elm].autoTapSide.fillna(False).astype(bool))
+            autotap_trafos = _as_bool_filled_na(net[elm].autoTap)
+            autoTapSide = _as_bool_filled_na(net[elm].autoTapSide)
+            assert all(autotap_trafos == autoTapSide)
             if sum(autotap_trafos):
                 bus_type = net[elm].autoTapSide.loc[autotap_trafos].str.lower() + "_bus"
                 bus_type_col_idx = column_indices(net[elm], bus_type)
@@ -420,9 +430,9 @@ def replace_branch_switches(net, reserved_aux_node_names=None):
         geodata=geodata, zone=subnets)
     for col in ["min_vm_pu", "max_vm_pu", "substation", "voltLvl"]:
         if col in net.bus.columns:
-            net.bus[col].loc[aux_buses] = net.bus[col][idx_bus].values
+            net.bus.loc[aux_buses, col] = net.bus[col][idx_bus].values
     if "subnet" in net.bus.columns:
-        net.bus.subnet.loc[aux_buses] = subnets
+        net.bus.loc[aux_buses, "subnet"] = subnets
     assert len(idx_bus) == len(aux_buses)
 
     # --- replace branch bus by new auxiliary node
@@ -434,15 +444,17 @@ def replace_branch_switches(net, reserved_aux_node_names=None):
         # is_first_bus_type == hv_bus resp. from_bus
         pos_in_aux_buses = idx_in_2nd_array(np.array(idx_b_sw[is_first_bus_type]),
                                             np.array(idx_t_sw.union(idx_l_sw)))
-        net[branch][bus_types[0]].loc[idx_elm[is_first_bus_type]] = aux_buses[pos_in_aux_buses]
+        net[branch].loc[idx_elm[is_first_bus_type], bus_types[0]] = \
+            aux_buses[pos_in_aux_buses].astype(net[branch][bus_types[0]].dtype)
         # ~is_first_bus_type == lv_bus resp. to_bus
         pos_in_aux_buses = idx_in_2nd_array(np.array(idx_b_sw[~is_first_bus_type]),
                                             np.array(idx_t_sw.union(idx_l_sw)))
-        net[branch][bus_types[1]].loc[idx_elm[~is_first_bus_type]] = aux_buses[pos_in_aux_buses]
+        net[branch].loc[idx_elm[~is_first_bus_type], bus_types[1]] = \
+            aux_buses[pos_in_aux_buses].astype(net[branch][bus_types[1]].dtype)
 
     # --- replace switch element by new auxiliary nodes
-    net.switch.element.loc[idx_t_sw.union(idx_l_sw)] = aux_buses
-    net.switch.et.loc[idx_t_sw.union(idx_l_sw)] = "b"
+    net.switch.loc[idx_t_sw.union(idx_l_sw), "element"] = aux_buses.astype(net.switch["element"].dtype)
+    net.switch.loc[idx_t_sw.union(idx_l_sw), "et"] = "b"
 
     return reserved_aux_node_names
 
@@ -475,38 +487,38 @@ def create_branch_switches(net):
             current_branch_bus_type_buses = net[branch][bus_type].astype(int)
             aux_buses_are_cbbtb = aux_bus_df["aux_buses"].isin(current_branch_bus_type_buses)
             current_branch_bus_types_aux_buses = aux_bus_df["aux_buses"][aux_buses_are_cbbtb].values
-            aux_bus_df["element"].loc[aux_buses_are_cbbtb] = current_branch_bus_type_buses.index[
+            aux_bus_df.loc[aux_buses_are_cbbtb, "element"] = current_branch_bus_type_buses.index[
                 idx_in_2nd_array(current_branch_bus_types_aux_buses,
                                  current_branch_bus_type_buses.values)]  # requirement: only one
             # switch per aux bus
-            aux_bus_df["et"].loc[aux_buses_are_cbbtb] = branch[0]
+            aux_bus_df.loc[aux_buses_are_cbbtb, "et"] = branch[0]
 
             # replace auxiliary buses in line and trafo tables
-            net[branch][bus_type].loc[aux_bus_df["element"].loc[aux_buses_are_cbbtb]] = aux_bus_df[
+            net[branch].loc[aux_bus_df["element"].loc[aux_buses_are_cbbtb], bus_type] = aux_bus_df[
                 "connected_buses"].loc[aux_buses_are_cbbtb].values
 
     if pd.isnull(aux_bus_df).any().any():
         logger.error("Auxiliary bus replacement fails.")
 
     # replace auxiliary buses in switch table by branch elements
-    net.switch["et"].loc[aux_bus_df["idx_switch"]] = aux_bus_df["et"].values
-    net.switch["element"].loc[aux_bus_df["idx_switch"]] = np.array(
+    net.switch.loc[aux_bus_df["idx_switch"], "et"] = aux_bus_df["et"].values
+    net.switch.loc[aux_bus_df["idx_switch"], "element"] = np.array(
         aux_bus_df["element"].values, dtype=int)
 
     # drop all auxiliary buses
-    net.bus.drop(aux_bus_df["aux_buses"], inplace=True)
+    net.bus = net.bus.drop(aux_bus_df["aux_buses"])
     idx_in_res_bus = aux_bus_df["aux_buses"][aux_bus_df["aux_buses"].isin(net.res_bus.index)]
-    net.res_bus.drop(idx_in_res_bus, inplace=True)
+    net.res_bus = net.res_bus.drop(idx_in_res_bus)
     idx_in_bus_geodata = aux_bus_df["aux_buses"][aux_bus_df["aux_buses"].isin(
         net.bus_geodata.index)]
-    net.bus_geodata.drop(idx_in_bus_geodata, inplace=True)
+    net.bus_geodata = net.bus_geodata.drop(idx_in_bus_geodata)
 
 
 def _add_coordID(net, highest_existing_coordinate_number):
     """ adds "id", "subnet" and "voltLvl" to net.bus_geodata, "coordID" to net.bus and
         returns an unique coordinate table. """
 
-    net.bus_geodata.dropna(how="all", inplace=True)
+    net.bus_geodata = net.bus_geodata.dropna(how="all")
 
     # add "subnet" column to net.bus_geodata
     net.bus_geodata["subnet"] = net.bus["subnet"]
@@ -520,13 +532,13 @@ def _add_coordID(net, highest_existing_coordinate_number):
     net.bus_geodata["voltLvl"] = net.bus["voltLvl"]
 
     # add "id" column to net.bus_geodata
-    net.bus_geodata["id"] = np.nan
-    net.bus_geodata.id.loc[uniq] = ["coord_%i" % i for i in range(
+    net.bus_geodata["id"] = ""
+    net.bus_geodata.loc[uniq, "id"] = ["coord_%i" % i for i in range(
         highest_existing_coordinate_number+1, highest_existing_coordinate_number+1+len(uniq))]
 
     # correct bus_geodata of duplicated entries
     for uni, dupl in uniq_dupl_dict.items():
-        net.bus_geodata.id.loc[dupl] = net.bus_geodata.id.loc[uni]
+        net.bus_geodata.loc[dupl, "id"] = net.bus_geodata.id.loc[uni]
 
     # copy new column "id" to net.bus["coordID"] - used in conversion process of pp2csv_data()
     net.bus["coordID"] = net.bus_geodata.id
@@ -548,13 +560,13 @@ def move_slack_gens_to_ext_grid(net):
         slacks = deepcopy(net.gen.loc[idx_slack])
         slacks["va_degree"] = 0
         slack_col_to_remove = [col for col in ["slack", "scaling"] if col in slacks.columns]
-        slacks.drop(columns=slack_col_to_remove, inplace=True)
+        slacks = slacks.drop(columns=slack_col_to_remove)
         ext_grid_col_to_set = [("controllable", True)]
         for col_to_set in ext_grid_col_to_set:
             if col_to_set[0] not in net.ext_grid.columns and col_to_set[0] in slacks.columns:
                 net.ext_grid[col_to_set[0]] = col_to_set[1]
         net["ext_grid"] = pd.concat([net["ext_grid"], slacks], ignore_index=True)
-        net.gen.drop(idx_slack, inplace=True)
+        net.gen = net.gen.drop(idx_slack)
 
 
 def ensure_bus_index_columns_as_int(net):

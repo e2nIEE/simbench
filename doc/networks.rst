@@ -12,3 +12,7 @@ SimBench provides a dataset of electrical power system benchmark models with gri
 The grids are received using the following function:
 
 .. autofunction:: simbench.get_simbench_net
+
+Available SimBench codes can be found and filtered by the following function:
+
+.. autofunction:: simbench.collect_all_simbench_codes

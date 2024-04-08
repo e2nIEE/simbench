@@ -53,7 +53,7 @@ def test_get_bus_bus_switch_indices_from_csv():
         bool_ = True
     assert bool_
 
-    switch_table.drop(switch_table.index[-1], inplace=True)
+    switch_table = switch_table.drop(switch_table.index[-1])
     try:
         sb.get_bus_bus_switch_indices_from_csv(switch_table, node_table)
         bool_ = False
@@ -61,7 +61,7 @@ def test_get_bus_bus_switch_indices_from_csv():
         bool_ = True
     assert bool_
 
-    switch_table.drop(switch_table.index[-1], inplace=True)
+    switch_table = switch_table.drop(switch_table.index[-1])
     assert sb.get_bus_bus_switch_indices_from_csv(switch_table, node_table) == [0, 5]
 
 
@@ -443,7 +443,7 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
         try:
             pp.runpp(net)
             converged = net.converged
-        except:
+        except pp.LoadflowNotConverged:
             sb_code = sb.get_simbench_code_from_parameters(sb_code_params)
             logger.error("Loadflow not converged with %s" % sb_code)
             converged = False

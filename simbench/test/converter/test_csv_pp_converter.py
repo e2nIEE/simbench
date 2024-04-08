@@ -14,7 +14,8 @@ from pandapower.networks import example_simple
 from simbench import sb_dir
 from simbench.converter import csv2pp, csv_data2pp, pp2csv, pp2csv_data, \
     convert_parallel_branches, read_csv_data, ensure_full_column_data_existence, \
-    avoid_duplicates_in_column, merge_busbar_coordinates
+    avoid_duplicates_in_column, merge_busbar_coordinates, to_numeric_ignored_errors, \
+    repl_nans_in_obj_cols_to_empty_str
 
 try:
     import pandaplan.core.pplog as logging
@@ -141,7 +142,7 @@ def test_convert_parallel_branches():
     assert net.switch.shape[0] == 11
 
     net1 = deepcopy(net)
-    net1.switch.closed.loc[4] = False
+    net1.switch.loc[4, "closed"] = False
     convert_parallel_branches(net, multiple_entries=False)
     convert_parallel_branches(net1, multiple_entries=False)
     # test sum up of parallels
@@ -238,14 +239,14 @@ def test_example_simple():
     # compare std_types as dataframes
     for netx in [net, net_from_csv_data]:
         for key, vals in netx["std_types"].items():
-            netx[f"std_types|{key}"] = pd.DataFrame(vals).T.apply(pd.to_numeric, errors='ignore')
+            netx[f"std_types|{key}"] = to_numeric_ignored_errors(pd.DataFrame(vals).T)
 
     for key in net.keys():
         if isinstance(net[key], pd.DataFrame):
             # drop unequal columns
             dummy_columns = net[key].columns
             extra_columns = net_from_csv_data[key].columns.difference(dummy_columns)
-            net_from_csv_data[key].drop(columns=extra_columns, inplace=True)
+            net_from_csv_data[key] = net_from_csv_data[key].drop(columns=extra_columns)
             # adjust dtypes
             if net[key].shape[0]:
                 try:
@@ -256,9 +257,12 @@ def test_example_simple():
             # drop result table rows
             if pp_is_27lower and "res_" in key:
                 if not key == "res_bus":
-                    net[key].drop(net[key].index, inplace=True)
+                    net[key] = net[key].iloc[0:0]
                 else:
                     net[key].loc[:, ["p_mw", "q_mvar"]] = np.nan
+
+    repl_nans_in_obj_cols_to_empty_str(net)
+    repl_nans_in_obj_cols_to_empty_str(net_from_csv_data)
 
     # --- for pp2.7.1 and newer
     if not pp_is_27lower:

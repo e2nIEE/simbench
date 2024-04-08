@@ -139,7 +139,7 @@ def filter_unapplied_profiles(csv_data):
         applied_profiles.append("time")
         unapplied_profiles = csv_data[prof_tab].columns.difference(applied_profiles)
         logger.debug("These %ss are dropped: " % prof_tab + str(unapplied_profiles))
-        csv_data[prof_tab].drop(unapplied_profiles, axis=1, inplace=True)
+        csv_data[prof_tab] = csv_data[prof_tab].drop(unapplied_profiles, axis=1)
 
 
 def filter_unapplied_profiles_pp(net, named_profiles: bool):
@@ -148,7 +148,7 @@ def filter_unapplied_profiles_pp(net, named_profiles: bool):
         if named_profiles:
             for key in net["profiles"].keys():
                 unused = get_unused_profiles(net, key)
-                net.profiles[key].drop(columns=unused, inplace=True)
+                net.profiles[key] = net.profiles[key].drop(columns=unused)
         else:
             for key in net.profiles.keys():
                 if isinstance(key, tuple):
@@ -158,8 +158,8 @@ def filter_unapplied_profiles_pp(net, named_profiles: bool):
                 else:
                     raise NotImplementedError("The keys of net.profiles are expected as " +
                                               "tuple(element, column) or as str, e.g. 'gen.vm_pu'.")
-                net.profiles[key].drop(columns=net.profiles[key].columns[~net.profiles[
-                    key].columns.isin(net[elm].index)], inplace=True)
+                net.profiles[key] = net.profiles[key].drop(columns=net.profiles[key].columns[
+                    ~net.profiles[key].columns.isin(net[elm].index)])
 
 
 def get_absolute_profiles_from_relative_profiles(
@@ -215,52 +215,46 @@ def get_absolute_profiles_from_relative_profiles(
 
     # --- set index
     index = relative_profiles["time"] if time_as_index else relative_profiles.index
-    if "time" in relative_profiles:
-        del relative_profiles["time"]
 
     # --- do profile_suffix assumptions if profile_suffix is None
     if profile_suffix is None:
+        profile_suffix = ""
         if element == "load":
             if multiplying_column == "p_mw":
                 profile_suffix = "_pload"
             elif multiplying_column == "q_mvar":
                 profile_suffix = "_qload"
-        profile_suffix = "" if profile_suffix is None else profile_suffix
 
-    # --- get relative profiles with respect to each element index
+    # --- get relative profiles
+    relative_profiles_vals = np.ones((len(index), len(net[element])))
     if profile_column in net[element].columns:
         applied_profiles = net[element][profile_column] + profile_suffix
-    else:  # missing profile column
+
+        missing = list(applied_profiles[~applied_profiles.isin(relative_profiles.columns)])
+        if len(missing):
+            raise ValueError("These profiles are set to be applied but are missing in the profiles "
+                             "data: " + str(missings))
+        isna = applied_profiles.isnull()
+        is_not_na_pos = np.arange(len(isna), dtype=int)[~isna.values]
+        relative_profiles_vals[:, is_not_na_pos] = \
+            relative_profiles[list(applied_profiles[~isna])].values
+
+    else:  # warning and assumptions in case of missing profile column
         logger.warning("In %s table, profile column '%s' is missing. Scalings of 1 are assumed." % (
             element, profile_column))
-        missing_col_handling = "missing_col_handling"
-        applied_profiles = pd.Series([missing_col_handling]*net[element].shape[0],
-                                     index=net[element].index, dtype=object)
-        relative_profiles[missing_col_handling] = 1
-
-    # nan profile handling
-    if applied_profiles.isnull().any():
-        logger.debug("There are nan profiles. Scalings of 1 are assumed.")
-        nan_profile_handling = "nan_profile_scaling"
-        assert nan_profile_handling not in relative_profiles.columns
-        applied_profiles.loc[applied_profiles.isnull()] = nan_profile_handling
-        relative_profiles[nan_profile_handling] = 1
-
-    relative_output_profiles = relative_profiles.values[:, idx_in_2nd_array(
-        applied_profiles.values, np.array(relative_profiles.columns))]
 
     # --- get factor to multiply with (consider additional feature of 'multiplying_column')
     if isinstance(multiplying_column, str):
         if multiplying_column in net[element].columns:
             factor = net[element][multiplying_column].values.reshape(1, -1)
         else:
-            raise ValueError("'multiplying_column' %s is not net[%s].columns." % (
+            raise ValueError("'multiplying_column' %s is not in net[%s].columns." % (
                 multiplying_column, element))
     else:
         factor = multiplying_column
 
     # --- multiply relative profiles with factor and return results
-    output_profiles = pd.DataFrame(relative_output_profiles*factor, index=index,
+    output_profiles = pd.DataFrame(relative_profiles_vals*factor, index=index,
                                    columns=net[element].index)
     return output_profiles
 
@@ -319,9 +313,9 @@ def get_absolute_values(net, profiles_instead_of_study_cases, **kwargs):
                 Idx_pv = net.sgen.index[net.sgen.type.str.contains("PV").fillna(False)]
                 Idx_sgen = net.sgen.index.difference(Idx_wind.union(Idx_pv))
                 net.sgen["loadcase_type"] = ""
-                net.sgen['loadcase_type'].loc[Idx_wind] = loadcase_type[0]
-                net.sgen['loadcase_type'].loc[Idx_pv] = loadcase_type[1]
-                net.sgen['loadcase_type'].loc[Idx_sgen] = loadcase_type[2]
+                net.sgen.loc[Idx_wind, 'loadcase_type'] = loadcase_type[0]
+                net.sgen.loc[Idx_pv, 'loadcase_type'] = loadcase_type[1]
+                net.sgen.loc[Idx_sgen, 'loadcase_type'] = loadcase_type[2]
             else:
                 net[elm_col[0]]["loadcase_type"] = loadcase_type
 

@@ -300,4 +300,4 @@ def _correct_calc_type(csv_data):
         if csv_data[tablename].shape[0]:
             for miss, corr in zip(misspelled, correct):
                 is_miss = csv_data[tablename].calc_type.isin(miss)
-                csv_data[tablename].calc_type.loc[is_miss] = corr
+                csv_data[tablename].loc[is_miss, "calc_type"] = corr

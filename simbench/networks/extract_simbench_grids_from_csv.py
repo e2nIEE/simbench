@@ -232,7 +232,7 @@ def _extract_csv_table_by_subnet(csv_table, tablename, relevant_subnets, bus_bus
 
         # --- determine indices to drop and examine dropping
         drop_idx = (set(csv_table.index) - hv_elms - lv_elms) | hv_lv_elms | lv_hv_elms
-        csv_table.drop(drop_idx, inplace=True)
+        csv_table = csv_table.drop(drop_idx)
         no_extraction = False
     else:
         no_extraction = "Profile" not in tablename and "Type" not in tablename and \
@@ -315,7 +315,7 @@ def generate_no_sw_variant(net):
             already_considered |= to_fuse[bus1]
 
     # drop all closed switches (which now also includes all bus-bus switches (see above))
-    net.switch.drop(net.switch.index[net.switch.closed], inplace=True)
+    net.switch = net.switch.drop(net.switch.index[net.switch.closed])
 
     # fuse buses which are connected via bus-bus switches
     for b1, b2 in to_fuse.items():
@@ -325,33 +325,40 @@ def generate_no_sw_variant(net):
     aux_buses = net.bus.index[net.bus.type == "auxiliary"]
     buses_at_sw = pd.concat([net.switch.bus, net.switch.element.loc[net.switch.et == "b"]])
     aux_buses_to_change_type = aux_buses[~aux_buses.isin(buses_at_sw)]
-    net.bus.type.loc[aux_buses_to_change_type] = "b"
+    net.bus.loc[aux_buses_to_change_type, "type"] = "b"
 
 
-def get_simbench_net(sb_code_info, input_path=None):
-    """
-    Returns the simbench net, requested by a given SimBench code information. Please have a look
+def get_simbench_net(sb_code_info:str, input_path:str=None):
+    """Returns the simbench net, requested by a given SimBench code information. Please have a look
     into jupyter notebook tutorials to learn more about simbench grids and the meaning of SimBench
     codes.
 
-    INPUT:
-        **sb_code_info** (str or list) - simbench code which defines which simbench grid is
-        requested, e.g. '1-MVLV-urban-all-0-sw' requests a grid with the urban MV grid and all
-        connected LV grids, both of SimBench version 1, scenario zero and with full switch
+    Parameters
+    ----------
+    sb_code_info : str or list
+        simbench code information which defines which simbench grid is requested.
+        For example, e.g. :code:`'1-MVLV-urban-all-0-sw'` requests a grid with the urban MV grid and
+        all connected LV grids, both of SimBench version 1, scenario zero and with full switch
         representation.
+        As an alternative :code:`[1, "MV", "LV", "urban", "all", 0, "sw"]` can be passed.
+    input_path : str, optional
+        option to change the path to all simbench grid csv files. However, a change should not be
+        necessary and is only for cases of applying the function to data from alternative location,
+        by default None
 
-    OPTIONAL:
-        **input_path** (path) - option to change the path to all simbench grid csv files. However,
-        a change should not be necessary.
+    Returns
+    -------
+    pandapowerNet
+        requsted simbench grid
 
-    OUTPUT:
-        net (pandapowerNet)
+    Examples
+    --------
+    >>> import simbench as sb
+    >>> net = sb.get_simbench_net('1-MVLV-urban-all-0-sw')
 
-    EXAMPLE:
-
-        import simbench as sb
-
-        net = sb.get_simbench_net('1-MVLV-urban-all-0-sw')
+    >>> import pandapower as pp
+    >>> pp.toolbox.nets_equal(net, sb.get_simbench_net([1, "MV", "LV", "urban", "all", 0, "sw"]))
+    True
     """
     # --- get relevant subnets
     sb_code, sb_code_parameters = get_simbench_code_and_parameters(sb_code_info)

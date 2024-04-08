@@ -24,5 +24,5 @@ if __name__ == "__main__":
     if 0:
         pytest.main(["test_simbench_loadcases.py", "-xs"])
     else:
-#        test_filter_loadcases()
+        test_filter_loadcases()
         pass

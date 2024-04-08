@@ -62,23 +62,25 @@ def test_column_indices():
 
 def test_get_unique_duplicated_dict():
     # --- with numeric data
-    A = pd.DataFrame([[8.0, 2, 1, 2.0, 3],
-                      [4.0, 3, 2, 5.0, 2],
-                      [6.0, 4, 2, 3.0, 4],
-                      [8.0, 3, 1, 2.0, 3],
+    A = pd.DataFrame([[8.0,    2, 1, 2.0,    3],
+                      [4.0,    3, 2, 5.0,    2],
+                      [6.0,    4, 2, 3.0,    4],
+                      [8.0,    3, 1, 2.0,    3],
                       [np.nan, 7, 5, np.nan, 2],
-                      [6.0, 4, 2, 3.0, 4],
-                      [8.0, 3, 1, 2.0, 3],
+                      [6.0,    4, 2, 3.0,    4],
+                      [8.0,    3, 1, 2.0,    3],
                       [np.nan, 7, 5, np.nan, 2],
-                      [8.0, 2, 1, 2.0, 3],
-                      [8.0, 2, 1, 2.0, 3]])
+                      [8.0,    2, 1, 2.0,    3],
+                      [8.0,    2, 1, 2.0,    3]])
     dict_ = sb.get_unique_duplicated_dict(A)
     assert dict_ == {0: [8, 9], 1: [], 2: [5], 3: [6], 4: [7]}
     dict_ = sb.get_unique_duplicated_dict(A, subset=[0, 2, 3, 4])
     assert dict_ == {0: [3, 6, 8, 9], 1: [], 2: [5], 4: [7]}
 
     # with strings
+    A[2] = A[2].astype(object)
     A.loc[[2, 5], 2] = "fd"
+    A[4] = A[4].astype(object)
     A.loc[9, 4] = "kl"
     dict_ = sb.get_unique_duplicated_dict(A)
     assert dict_ == {0: [8], 1: [], 2: [5], 3: [6], 4: [7], 9: []}
@@ -211,7 +213,7 @@ def test_merge_dataframes():
     assert pp.dataframes_equal(return6, res6)
 
     # beware idx order, df1 with precedence, no extra index
-    return7 = sb.merge_dataframes([df1, df2], keep="first", sort=False)
+    return7 = sb.merge_dataframes([df1, df2], keep="first", sort_index=False, sort_column=False)
     try:
         res7 = deepcopy(res5).reindex(unsorted_index, columns=unsorted_columns)
     except TypeError:  # legacy for pandas <0.21
@@ -220,7 +222,7 @@ def test_merge_dataframes():
     assert pp.dataframes_equal(return7, res7)
 
     # beware idx order, df1 with precedence, no extra index
-    return8 = sb.merge_dataframes([df1, df2], keep="last", sort=False)
+    return8 = sb.merge_dataframes([df1, df2], keep="last", sort_index=False, sort_column=False)
     try:
         res8 = deepcopy(res6).reindex(unsorted_index, columns=unsorted_columns)
     except TypeError:  # legacy for pandas <0.21
