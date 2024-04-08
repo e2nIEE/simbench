@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "simbench"
-version = "1.5.0" # File format version '__format_version__' is tracked in _version.py
+version = "1.5.1" # File format version '__format_version__' is tracked in _version.py
 authors = [
     { name = "Steffen Meinecke", email = "steffen.meinecke@uni-kassel.de" }
 ]
