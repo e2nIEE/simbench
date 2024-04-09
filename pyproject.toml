@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "simbench"
-version = "1.5.1" # File format version '__format_version__' is tracked in _version.py
+version = "1.5.1"
 authors = [
     { name = "Steffen Meinecke", email = "steffen.meinecke@uni-kassel.de" }
 ]
@@ -65,8 +65,8 @@ all = [
 ]
 # "shapely", "pyproj", "fiona" are dependencies of geopandas and should be already available
 
-[tool.setuptools.packages.find]
-where = ["simbench"]
+[tool.setuptools]
+packages = ["simbench"]
 
 [tool.pytest.ini_options]
 addopts = ["--strict-markers"]

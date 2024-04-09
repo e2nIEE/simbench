@@ -1,6 +1,16 @@
 Change Log
 =============
 
+[1.5.2] - 2024-04-09
+----------------------
+- [CHANGED] readded copyright notice to setup.py and updated date
+- [CHANGED] added prune to MANIFEST.in to exclude doc and tutorials from wheel builds
+- [CHANGED] removed gitlab ci files from MANIFEST.in to keep them out of wheel builds
+- [CHANGED] updated pyproject.toml to fix build issues
+- [CHANGED] updated upload_release.yml to not call setup.py anymore (see https://packaging.python.org/en/latest/discussions/setup-py-deprecated/)
+- [CHANGED] updated upload_release.yml to build and upload src dist as .tar.gz and .whl
+- [CHANGED] updated upload_release.yml to install from PyPI and test the installed package
+
 [1.5.1] - 2024-04-08
 ----------------------
 [FIXED] spelling mistake in pyproject.toml

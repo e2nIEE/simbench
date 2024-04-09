@@ -1,4 +1,8 @@
-include LICENSE AUTHORS README.rst CHANGELOG.rst .github/**/*.yml
+include LICENSE AUTHORS README.rst CHANGELOG.rst
+
 global-include *.csv
 global-include *.json
 global-include *.txt
+
+prune doc*
+prune tutorials*
