@@ -65,8 +65,8 @@ all = [
 ]
 # "shapely", "pyproj", "fiona" are dependencies of geopandas and should be already available
 
-[tool.setuptools]
-packages = ["simbench"]
+[tool.setuptools.packages]
+find = {}
 
 [tool.pytest.ini_options]
 addopts = ["--strict-markers"]
