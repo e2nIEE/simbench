@@ -1,8 +1,11 @@
 Change Log
 =============
 
-[1.5.2] - 2024-04-09
+[x.x.x] - 202x-xx-xx
 ----------------------
+- [ADDED] generalization and test for auxiliary function :code:`to_numeric_ignored_errors()`
+
+[1.5.2] - 2024-04-09
 - [CHANGED] readded copyright notice to setup.py and updated date
 - [CHANGED] added prune to MANIFEST.in to exclude doc and tutorials from wheel builds
 - [CHANGED] removed gitlab ci files from MANIFEST.in to keep them out of wheel builds

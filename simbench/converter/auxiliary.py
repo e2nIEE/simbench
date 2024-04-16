@@ -29,14 +29,52 @@ def ensure_iterability(var, len_=None):
     return var
 
 
-def to_numeric_ignored_errors(data):
+def to_numeric_ignored_errors(data, **kwargs):
+    """Wrapper function for pandas.to_numeric(). Needed to emulate previous behavior with deprecated
+    errors="ignore".
+
+    Parameters
+    ----------
+    data : Series|DataFrame
+        data to convert its dtypes
+
+    Returns
+    -------
+    Series|DataFrame
+        converted data
+
+    Examples
+    --------
+    >>> df = pd.DataFrame([[1, 2, 2.0], [1.2, 3, 4.0], ["a", "b", "D"]]).iloc[:2]
+    >>> df.dtypes  # input with nonnumeric dtypes, although data values are numerics
+    0    object
+    1    object
+    2    object
+    dtype: object
+    >>> to_numeric_ignored_errors(df).dtypes # stops when numeric dtype is found
+    0    float64
+    1      int64
+    2    float64
+    dtype: object
+    >>> to_numeric_ignored_errors(df, downcast="float").dtypes # (down)casts to float dtype
+    0    float32
+    1    float32
+    2    float32
+    dtype: object
+    >>> to_numeric_ignored_errors(df, downcast="integer").dtypes # (down)casts to integer dtype if possible
+    0    float64
+    1       int8
+    2       int8
+    dtype: object
+    """
     if isinstance(data, pd.Series):
         try:
-            return pd.to_numeric(data)
+            return pd.to_numeric(data, **kwargs)
         except (ValueError, TypeError):
             return data
     elif isinstance(data, pd.DataFrame):
-        return pd.concat([to_numeric_ignored_errors(data[col]) for col in data.columns], axis=1)
+        return pd.concat([to_numeric_ignored_errors(data[col], **kwargs) for col in data.columns],
+                         axis=1)
     else:
         raise TypeError(f"{type(data)=} is not a pandas.Series or a pandas.DataFrame.")
 
