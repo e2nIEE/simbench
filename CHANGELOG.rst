@@ -1,8 +1,9 @@
 Change Log
 =============
 
-[x.x.x] - 202x-xx-xx
+[1.5.3] - 2024-04-23
 ----------------------
+- [FIXED] Bringing together develop and master with all changes of the release process
 - [ADDED] generalization and test for auxiliary function :code:`to_numeric_ignored_errors()`
 
 [1.5.2] - 2024-04-09
