@@ -54,9 +54,10 @@ def csv_tablenames(which):
 
 def _csv_table_pp_dataframe_correspondings(type_):
     csv_tablenames_ = csv_tablenames(['elements', 'types', 'res_elements'])
+    csv_tablenames_.remove("Coordinates")
     # corresponding pandapower dataframe names
     pp_dfnames = ['ext_grid', 'line', 'load', 'shunt', 'bus', 'measurement', 'gen', 'sgen',
-                  'storage', 'substation', 'switch', 'trafo', 'trafo3w', 'bus_geodata',
+                  'storage', 'substation', 'switch', 'trafo', 'trafo3w',
                   'std_types|line', 'dcline', 'std_types|trafo', 'std_types|trafo3w',
                   "res_bus"]
     # append table name lists by combinations of generating elements

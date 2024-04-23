@@ -181,8 +181,19 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                     net["switch"] = net["switch"].drop(switch_dupl)
 
 
+def convert_geojson_to_bus_geodata_xy(net):
+    def notnone(val):
+        return isinstance(val, str) and bool(len(val))
+    net.bus_geodata = pd.DataFrame(np.nan, index=net.bus.index, columns=["x", "y"])
+    # x =
+    idxs = net.bus.index[net.bus.geo.apply(notnone)]
+    net.bus_geodata.loc[idxs, ["x", "y"]] = np.r_[[pd.read_json(net.bus.geo.at[
+        i]).coordinates.values for i in idxs]]
+
+
 def merge_busbar_coordinates(net):
     """ merges x and y coordinates of busbar node connected via bus-bus switches """
+    convert_geojson_to_bus_geodata_xy(net)
     bb_nodes_set = set(net.bus.index[net.bus.type == "b"])
     bb_nodes = sorted(bb_nodes_set)
     all_connected_buses = set()
@@ -509,9 +520,6 @@ def create_branch_switches(net):
     net.bus = net.bus.drop(aux_bus_df["aux_buses"])
     idx_in_res_bus = aux_bus_df["aux_buses"][aux_bus_df["aux_buses"].isin(net.res_bus.index)]
     net.res_bus = net.res_bus.drop(idx_in_res_bus)
-    idx_in_bus_geodata = aux_bus_df["aux_buses"][aux_bus_df["aux_buses"].isin(
-        net.bus_geodata.index)]
-    net.bus_geodata = net.bus_geodata.drop(idx_in_bus_geodata)
 
 
 def _add_coordID(net, highest_existing_coordinate_number):

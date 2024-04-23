@@ -34,7 +34,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
-    "pandapower>=2.12.1"
+    "pandapower>=3.0.0"
     ]
 keywords = [
     "benchmark grid", "power system", "network", "grid planning", "grid operation", "grid generation methodology", "comparability", "reproducibility", "electricity", "energy", "engineering", "simulation", "simbench", "time series", "future scenarios"

@@ -233,11 +233,6 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
                        str(["%s" % elm for elm in check_results.keys()]) + ". Only the standard " +
                        "type values are converted to csv.")
     convert_parallel_branches(net)
-    if net.bus.shape[0] and not net.bus_geodata.shape[0] or (
-            net.bus_geodata.shape[0] != net.bus.shape[0]):
-        logger.info("Since there are no or incomplete bus_geodata, generic geodata are assumed.")
-        net.bus_geodata = net.bus_geodata.iloc[0:0]
-        create_generic_coordinates(net)
     merge_busbar_coordinates(net)
     move_slack_gens_to_ext_grid(net)
 
