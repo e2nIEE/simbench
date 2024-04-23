@@ -32,6 +32,21 @@ def test_ensure_iterability():
     assert bool_
 
 
+def test_to_numeric_ignored_errors():
+    df = pd.DataFrame([[1, 2, 2.0], [1.2, 3, 4.0], ["a", "b", "D"]]).iloc[:2]
+    out1 = sb.to_numeric_ignored_errors(df)
+    out2 = sb.to_numeric_ignored_errors(df, downcast="float")
+    out3 = sb.to_numeric_ignored_errors(df, downcast="integer")
+
+    assert set(out1.select_dtypes("float").columns) == {0, 2}
+    assert set(out1.select_dtypes("integer").columns) == {1}
+
+    assert set(out2.select_dtypes("float").columns) == {0, 1, 2}
+
+    assert set(out3.select_dtypes("float").columns) == {0}
+    assert set(out3.select_dtypes("integer").columns) == {1, 2}
+
+
 def test_idx_in_2nd_array():
     arr1 = np.array([1, 6, 4.6, 3.4, 6, 1, "Hallo", "hallo", "Hallo"])
     arr2 = np.array([8, 4, 1, 2, 5, 5.6, 4.6, "Hallo", "hallo", 6, 3.4])
