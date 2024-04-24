@@ -52,18 +52,20 @@ def csv_tablenames(which):
     return csv_tablenames
 
 
-def _csv_table_pp_dataframe_correspondings(type_):
+def _csv_table_pp_dataframe_correspondings(type_, drop_bus_geodata):
     csv_tablenames_ = csv_tablenames(['elements', 'types', 'res_elements'])
-    csv_tablenames_.remove("Coordinates")
     # corresponding pandapower dataframe names
     pp_dfnames = ['ext_grid', 'line', 'load', 'shunt', 'bus', 'measurement', 'gen', 'sgen',
-                  'storage', 'substation', 'switch', 'trafo', 'trafo3w',
+                  'storage', 'substation', 'switch', 'trafo', 'trafo3w', 'bus_geodata',
                   'std_types|line', 'dcline', 'std_types|trafo', 'std_types|trafo3w',
                   "res_bus"]
     # append table name lists by combinations of generating elements
     csv_tablenames_ += ['ExternalNet', 'ExternalNet', 'PowerPlant', 'PowerPlant', 'RES', 'RES',
                         'ExternalNet', 'ExternalNet', 'Line']
     pp_dfnames += ['gen', 'sgen', 'ext_grid', 'sgen', 'ext_grid', 'gen', 'ward', 'xward', 'dcline']
+    if drop_bus_geodata:
+        csv_tablenames_.remove("Coordinates")
+        pp_dfnames.remove("bus_geodata")
     assert len(csv_tablenames_) == len(pp_dfnames)
     if type_ is list:
         return csv_tablenames_, pp_dfnames

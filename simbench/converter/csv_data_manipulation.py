@@ -154,7 +154,7 @@ def _add_phys_type_and_vm_va_setpoints_to_element_tables(csv_data):
 def _extend_coordinates_to_node_shape(csv_data):
     """ Extends the Coordinates table to the shape of Nodes to enable copying simply to bus_geodata.
     """
-    geo = pd.Series(None, index=csv_data["Node"].index, name="geo")
+    geo = pd.Series(None, index=csv_data["Node"].index, name="geo", dtype=object)
     with_coord = ~csv_data["Node"]["coordID"].isnull()
     idx_in_coordID = idx_in_2nd_array(csv_data["Node"]["coordID"].loc[with_coord].values,
                                       csv_data["Coordinates"]["id"].values)
