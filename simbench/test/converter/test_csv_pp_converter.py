@@ -219,9 +219,9 @@ def test_example_simple():
         avoid_duplicates_in_column(net, i, 'name')
 
     # --- create geodata
-    net.bus_geodata["x"] = [0, 1, 2, 3, 4, 5, 5, 3.63]
-    net.bus_geodata["y"] = [0]*5+[-5, 5, 2.33]
-    merge_busbar_coordinates(net)
+    net.bus["geo"] = list(map(lambda xy: f'{{"type":"Point", "coordinates":[{xy[0]}, {xy[1]}]}}',
+                              zip([0., 1., 2., 3., 4., 5., 5., 3.63], [0.]*5+[-5., 5., 2.33])))
+    merge_busbar_coordinates(net, False)
 
     # --- convert
     csv_data = pp2csv_data(net, export_pp_std_types=True, drop_inactive_elements=True)

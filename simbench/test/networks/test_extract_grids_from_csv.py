@@ -393,14 +393,7 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
         assert net.measurement.shape[0] > 1
 
     # bus_geodata
-    assert net.bus.shape[0] == net.bus_geodata.shape[0]
-    # check_that_all_buses_connected_by_switches_have_same_geodata
-    # for bus_group in bus_groups_connected_by_switches(net):
-    #     first_bus = list(bus_group)[0]
-    #     assert np.all(np.isclose(net.bus_geodata.x.loc[bus_group].astype(float),
-    #                              net.bus_geodata.x.loc[first_bus].astype(float))) \
-    #         and np.all(np.isclose(net.bus_geodata.y.loc[bus_group].astype(float),
-    #                               net.bus_geodata.y.loc[first_bus].astype(float)))
+    assert not net.bus.geo.isnull().any()
 
     # --- test data content
     # substation

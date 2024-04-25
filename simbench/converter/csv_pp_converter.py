@@ -233,12 +233,7 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
                        str(["%s" % elm for elm in check_results.keys()]) + ". Only the standard " +
                        "type values are converted to csv.")
     convert_parallel_branches(net)
-    if net.bus.shape[0] and not net.bus_geodata.shape[0] or (
-            net.bus_geodata.shape[0] != net.bus.shape[0]):
-        logger.info("Since there are no or incomplete bus_geodata, generic geodata are assumed.")
-        net.bus_geodata = net.bus_geodata.iloc[0:0]
-        create_generic_coordinates(net)
-    merge_busbar_coordinates(net)
+    merge_busbar_coordinates(net, True)
     move_slack_gens_to_ext_grid(net)
 
     scaling_is_not_1 = []
@@ -319,7 +314,8 @@ def _log_nan_col(csv_data, tablename, col):
 
 
 def _is_pp_type(data):
-    return "name" in data.keys()  # used instead of isinstance(data, pp.auxiliary.pandapowerNet)
+    return isinstance(data, pp.auxiliary.pandapowerNet)
+    # return bool("name" in data.keys())
 
 
 def convert_node_type(data):
@@ -679,7 +675,7 @@ def _rename_and_split_input_tables(data):
     split_ppelm_into_type_and_elm = ["dcline"] if _is_pp_type(data) else []
     input_elm_col = "pp" if _is_pp_type(data) else "csv"
     output_elm_col = "csv" if _is_pp_type(data) else "pp"
-    corr_df = _csv_table_pp_dataframe_correspondings(pd.DataFrame)
+    corr_df = _csv_table_pp_dataframe_correspondings(pd.DataFrame, not _is_pp_type(data))
     corr_df["comb_str"] = corr_df["csv"] + "*" + corr_df["pp"]
 
     # all elements, which need to be converted to multiple output element tables, (dupl) need to be
@@ -726,7 +722,7 @@ def _get_split_gen_val(element):
 
 def _rename_and_multiply_columns(data):
     """ Renames the columns of all dataframes as needed in output data. """
-    to_rename_and_multiply_tuples = _get_parameters_to_rename_and_multiply()
+    to_rename_and_multiply_tuples = _get_parameters_to_rename_and_multiply(True)
     for corr_str, tuples in to_rename_and_multiply_tuples.items():
         # --- remove "type" from data if "std_type" exists too
         if "std_type" in data[corr_str].columns and "type" in data[corr_str].columns and \
@@ -756,7 +752,7 @@ def _rename_and_multiply_columns(data):
             data[corr_str].loc[:, col] *= factors
 
 
-def _get_parameters_to_rename_and_multiply():
+def _get_parameters_to_rename_and_multiply(drop_bus_geodata):
     """ Returns a dict of tuples and a dict of dataframes where csv column names are assigned to
     pandapower columns names which differ. """
     # --- create dummy_net to get pp columns
@@ -770,8 +766,8 @@ def _get_parameters_to_rename_and_multiply():
         dummy_net[elm]["va_degree"] = np.nan
 
     # --- get corresponding tables and dataframes
-    corr_strings = _csv_table_pp_dataframe_correspondings(str)
-    csv_tablenames_, pp_dfnames = _csv_table_pp_dataframe_correspondings(list)
+    corr_strings = _csv_table_pp_dataframe_correspondings(str, drop_bus_geodata)
+    csv_tablenames_, pp_dfnames = _csv_table_pp_dataframe_correspondings(list, drop_bus_geodata)
 
     # --- initialize tuples_dict
     tuples_dict = dict.fromkeys(corr_strings, [("id", "name", None)])
@@ -803,7 +799,7 @@ def _replace_name_index(data):
         indices. This function replaces the assignment of the input data. """
     node_names = {"node", "nodeA", "nodeB", "nodeHV", "nodeMV", "nodeLV"}
     bus_names = {"bus", "from_bus", "to_bus", "hv_bus", "mv_bus", "lv_bus"}
-    corr_strings = _csv_table_pp_dataframe_correspondings(str)
+    corr_strings = _csv_table_pp_dataframe_correspondings(str, True)
     corr_strings.remove("Measurement*measurement")  # already done in convert_measurement()
 
     if _is_pp_type(data):
@@ -843,8 +839,9 @@ def _copy_data(input_data, output_data):
     """ Copies the data from output_data[corr_strings] into input_data[element_table]. This function
         handles that some corr_strings are not in output_data.keys() and copies all columns which
         exists in both, output_data[corr_strings] and input_data[element_table]. """
-    corr_strings = _csv_table_pp_dataframe_correspondings(str)
-    output_names = _csv_table_pp_dataframe_correspondings(list)[int(_is_pp_type(output_data))]
+    out_is_pp = _is_pp_type(output_data)
+    corr_strings = _csv_table_pp_dataframe_correspondings(str, out_is_pp)
+    output_names = _csv_table_pp_dataframe_correspondings(list, out_is_pp)[int(out_is_pp)]
 
     for corr_str, output_name in zip(corr_strings, output_names):
         if corr_str in input_data.keys() and input_data[corr_str].shape[0]:
@@ -869,7 +866,7 @@ def _copy_data(input_data, output_data):
                 output_data[output_name] = pd.concat([output_data[output_name], input_data[
                     corr_str][cols_to_copy]], ignore_index=True).reindex_axis(output_data[
                         output_name].columns, axis=1)
-            if "std_types" in corr_str and _is_pp_type(output_data):
+            if "std_types" in corr_str and out_is_pp:
                 output_data[output_name].index = input_data[corr_str]["std_type"]
             _inscribe_fix_values(output_data, output_name)
 
