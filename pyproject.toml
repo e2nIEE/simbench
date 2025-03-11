@@ -14,7 +14,7 @@ maintainers = [
 description = "Electrical Power System Benchmark Models."
 readme = "README.rst"
 license = { file = "LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -27,14 +27,13 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     # Add the specific Python versions supported here, e.g.:
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
-    "pandapower>=2.14.6"
+    "pandapower>=3.0.0"
     ]
 keywords = [
     "benchmark grid", "power system", "network", "grid planning", "grid operation", "grid generation methodology", "comparability", "reproducibility", "electricity", "energy", "engineering", "simulation", "simbench", "time series", "future scenarios"
