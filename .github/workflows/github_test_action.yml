@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.9', '3.10', '3.11', '3.12']
         # Reminder: when removing support of an old python version here, then don't forget to remove
         # it also in pyproject.toml 'requires-python'
     steps:

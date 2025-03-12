@@ -4,6 +4,7 @@ Change Log
 [1.6.0] - 2024-xx-xx
 ----------------------
 - [CHANGED] support pandapower geojson, released with pandapower version 3.0.0
+- [CHANGED] drop python 3.8 support
 
 [1.5.3] - 2024-04-23
 ----------------------
