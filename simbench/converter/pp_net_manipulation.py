@@ -408,6 +408,13 @@ def _set_vm_setpoint_to_trafos(net, csv_data):
                     idx_node].values
 
 
+def _set_dependency_table_parameters(net):
+    for et in ["trafo", "trafo3w", "shunt"]:
+        param = "step_dependency_table" if et == "shunt" else "tap_dependency_table"
+        if param in net[et].columns:
+            net[et][param] = False
+            net[et][param] = net[et][param].astype(bool)
+
 def _prepare_res_bus_table(net):
     """ Adds columns to be converted to csv_data. """
     if net.res_bus.shape[0]:

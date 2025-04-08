@@ -256,7 +256,7 @@ def test_example_simple():
                     logger.error("dtype adjustment of %s failed." % key)
             # drop result table rows
             if pp_is_27lower and "res_" in key:
-                if not key == "res_bus":
+                if key != "res_bus":
                     net[key] = net[key].iloc[0:0]
                 else:
                     net[key].loc[:, ["p_mw", "q_mvar"]] = np.nan

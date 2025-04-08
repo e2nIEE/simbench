@@ -3,7 +3,10 @@
 # contributors (see AUTHORS file for details). All rights reserved.
 
 # This is the csv_pp_converter for the simbench project.
-# pandapower 2.0.1 <-> simbench format (reasled status from 25.04.2019)
+
+# OPTIONAL IMPROVEMENTS for compatibility with future pandapower changes: constructing the
+# dataframes net[element_table] by using the create_buses(), create_lines(), ... functions
+# which where fast enough or not available at the time SimBench was developed.
 
 import os
 import pandas as pd
@@ -28,7 +31,7 @@ from simbench.converter.read_and_write import _init_csv_tables
 from simbench.converter.pp_net_manipulation import _extend_pandapower_net_columns, \
     _add_dspf_calc_type_and_phys_type_columns, _add_vm_va_setpoints_to_buses, \
     _prepare_res_bus_table, replace_branch_switches, create_branch_switches, _add_coordID, \
-    _set_vm_setpoint_to_trafos
+    _set_vm_setpoint_to_trafos, _set_dependency_table_parameters
 from simbench.converter.csv_data_manipulation import *
 from simbench.converter.csv_data_manipulation import _extend_coordinates_to_node_shape, \
     _sort_switch_nodes_and_prepare_element_and_et, \
@@ -127,6 +130,7 @@ def csv_data2pp(csv_data):
     create_branch_switches(net)
     net.bus.loc[net.bus.type == "multi_auxiliary", "type"] = "auxiliary"
     _set_vm_setpoint_to_trafos(net, csv_data)
+    _set_dependency_table_parameters(net)
     _csv_types_to_pp2(net)
     ensure_bus_index_columns_as_int(net)
 
@@ -222,15 +226,20 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
     csv_data = _init_csv_tables(['elements', 'profiles', 'types', 'res_elements'])
     aux_nodes_are_reserved = reserved_aux_node_names is not None
 
+    if ("step_dependency_table" in net1.trafo.columns and net1.trafo.step_dependency_table.any()) \
+        or \
+        ("step_dependency_table" in net1.shunt.columns and net1.shunt.step_dependency_table.any()):
+        logger.warning("'step_dependency_table' is not supported in SimBench's csv data format.")
+
     # --- net data preparation for converting
     _extend_pandapower_net_columns(net)
     if drop_inactive_elements:
         # attention: trafo3ws are not considered in current version of drop_inactive_elements()
         pp.drop_inactive_elements(net, respect_switches=False)
-    check_results = pp.deviation_from_std_type(net)
-    if check_results:
+    dev_from_std = pp.deviation_from_std_type(net)
+    if dev_from_std:
         logger.warning("There are deviations from standard types in elements: " +
-                       str(["%s" % elm for elm in check_results.keys()]) + ". Only the standard " +
+                       str(["%s" % elm for elm in dev_from_std.keys()]) + ". Only the standard " +
                        "type values are converted to csv.")
     convert_parallel_branches(net)
     merge_busbar_coordinates(net, True)
