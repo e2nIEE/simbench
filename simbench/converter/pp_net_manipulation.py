@@ -186,10 +186,10 @@ def convert_geojson_to_bus_geodata_xy(net):
     def notnone(val):
         return isinstance(val, str) and bool(len(val))
     net.bus_geodata = pd.DataFrame(np.nan, index=net.bus.index, columns=["x", "y"])
-    # x =
     idxs = net.bus.index[net.bus.geo.apply(notnone)]
-    net.bus_geodata.loc[idxs, ["x", "y"]] = np.r_[[pd.read_json(StringIO(net.bus.geo.at[
-        i])).coordinates.values for i in idxs]]
+    if len(idxs):
+        net.bus_geodata.loc[idxs, ["x", "y"]] = np.r_[[pd.read_json(StringIO(net.bus.geo.at[
+            i])).coordinates.values for i in idxs]]
 
 
 def merge_busbar_coordinates(net, on_bus_geodata):

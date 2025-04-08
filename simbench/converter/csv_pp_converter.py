@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 __author__ = 'smeinecke'
 
 
-def csv2pp(path, sep=';', add_folder_name=None, nrows=None, no_generic_coord=False):
+def csv2pp(path, sep=';', add_folder_name=None, nrows=None, fill_bus_geo_by_generic_data=True):
     """
     Conversion function from simbench csv format to pandapower.
 
@@ -61,8 +61,9 @@ def csv2pp(path, sep=';', add_folder_name=None, nrows=None, no_generic_coord=Fal
         **nrows** (int, None) - number of rows to be read for profiles. If None, all rows will be
         read.
 
-        **no_generic_coord** (bool, False) - if True, no generic coordinates are created in case of
-        missing geodata.
+        **fill_bus_geo_by_generic_data** (bool, False) - if False, no generic coordinates are
+        created in case of missing geo data. If True, generic coordinates are create when at least
+        one bus misses geo data.
 
     OUTPUT:
         **net** (pandapowerNet) - the created pandapower net from csv files data
@@ -82,17 +83,12 @@ def csv2pp(path, sep=';', add_folder_name=None, nrows=None, no_generic_coord=Fal
     csv_data = read_csv_data(path, sep, nrows=nrows)
 
     # run net creation
-    net = csv_data2pp(csv_data)
-
-    # ensure geodata
-    if not no_generic_coord and any(pd.isnull(net.bus_geodata.x) | pd.isnull(net.bus_geodata.y)):
-        del net.bus_geodata
-        create_generic_coordinates(net)
+    net = csv_data2pp(csv_data, fill_bus_geo_by_generic_data=fill_bus_geo_by_generic_data)
 
     return net
 
 
-def csv_data2pp(csv_data):
+def csv_data2pp(csv_data, fill_bus_geo_by_generic_data=False):
     """ Internal functionality of csv2pp, but with a given dict of csv_data as input instead of
         csv files. """
     # --- initializations
@@ -133,6 +129,17 @@ def csv_data2pp(csv_data):
     _set_dependency_table_parameters(net)
     _csv_types_to_pp2(net)
     ensure_bus_index_columns_as_int(net)
+
+    # --- ensure geodata
+    if not fill_bus_geo_by_generic_data:
+        if n_missing_geo_data := sum(pd.isnull(net.bus.geo) | (net.bus.geo == "")):
+            if n_missing_geo_data != len(net.bus):
+                logger.info(f"Due to {fill_bus_geo_by_generic_data=}, new generic geo data are "
+                            f"created and overwrite existing bus geo data ("
+                            f"{len(net.bus)-n_missing_geo_data} buses had geo data, "
+                            f"{n_missing_geo_data} buses missed geo data).")
+            net.bus["geo"] = None
+            create_generic_coordinates(net)
 
     return net
 

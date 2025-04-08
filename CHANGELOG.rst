@@ -7,6 +7,7 @@ Change Log
 - [ADDED] support pandapower parameters step_dependency_table and tap_dependency_table, released with pandapower version 3.0.0
 - [CHANGED] drop python 3.8 support
 - [FIXED] fix ValueError raise according to GitHub issue #56
+- [CHANGED] rename parameter csv2pp parameter `no_generic_coord` by `fill_bus_geo_by_generic_data`
 
 [1.5.3] - 2024-04-23
 ----------------------
