@@ -233,7 +233,7 @@ def get_absolute_profiles_from_relative_profiles(
         missing = list(applied_profiles[~applied_profiles.isin(relative_profiles.columns)])
         if len(missing):
             raise ValueError("These profiles are set to be applied but are missing in the profiles "
-                             "data: " + str(missings))
+                             "data: " + str(missing))
         isna = applied_profiles.isnull()
         is_not_na_pos = np.arange(len(isna), dtype=int)[~isna.values]
         relative_profiles_vals[:, is_not_na_pos] = \
