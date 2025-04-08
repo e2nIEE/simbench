@@ -6,6 +6,7 @@ Change Log
 - [CHANGED] support pandapower geojson, released with pandapower version 3.0.0
 - [ADDED] support pandapower parameters step_dependency_table and tap_dependency_table, released with pandapower version 3.0.0
 - [CHANGED] drop python 3.8 support
+- [FIXED] fix ValueError raise according to GitHub issue #56
 
 [1.5.3] - 2024-04-23
 ----------------------
