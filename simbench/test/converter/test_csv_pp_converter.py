@@ -155,7 +155,7 @@ def test_convert_parallel_branches():
 
 
 def test_test_network():
-    net = csv2pp(test_network_path, no_generic_coord=True)
+    net = csv2pp(test_network_path, fill_bus_geo_by_generic_data=False)
 
     # test min/max ratio
     for elm in pp.pp_elements(bus=False, branch_elements=False, other_elements=False):
