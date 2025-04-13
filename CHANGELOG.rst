@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[1.6.1] - 2024-04-13
+----------------------
+- [CHANGED] nothing - just a correct upload to pypi
+
 [1.6.0] - 2024-04-09
 ----------------------
 - [CHANGED] support pandapower geojson, released with pandapower version 3.0.0
