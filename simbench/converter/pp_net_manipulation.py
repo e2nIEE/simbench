@@ -2,6 +2,7 @@
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
+from io import StringIO
 import numpy as np
 import pandas as pd
 import pandapower as pp
@@ -181,8 +182,20 @@ def convert_parallel_branches(net, multiple_entries=True, elm_to_convert=["line"
                     net["switch"] = net["switch"].drop(switch_dupl)
 
 
-def merge_busbar_coordinates(net):
+def convert_geojson_to_bus_geodata_xy(net):
+    def notnone(val):
+        return isinstance(val, str) and bool(len(val))
+    net.bus_geodata = pd.DataFrame(np.nan, index=net.bus.index, columns=["x", "y"])
+    idxs = net.bus.index[net.bus.geo.apply(notnone)]
+    if len(idxs):
+        net.bus_geodata.loc[idxs, ["x", "y"]] = np.r_[[pd.read_json(StringIO(net.bus.geo.at[
+            i])).coordinates.values for i in idxs]]
+
+
+def merge_busbar_coordinates(net, on_bus_geodata):
     """ merges x and y coordinates of busbar node connected via bus-bus switches """
+    if on_bus_geodata:
+        convert_geojson_to_bus_geodata_xy(net)
     bb_nodes_set = set(net.bus.index[net.bus.type == "b"])
     bb_nodes = sorted(bb_nodes_set)
     all_connected_buses = set()
@@ -191,8 +204,11 @@ def merge_busbar_coordinates(net):
             continue
         connected_nodes = pp.get_connected_buses(net, bb_node, consider=("t", "s"))
         if len(connected_nodes):
-            net.bus_geodata.loc[list(connected_nodes), "x"] = net.bus_geodata.x.at[bb_node]
-            net.bus_geodata.loc[list(connected_nodes), "y"] = net.bus_geodata.y.at[bb_node]
+            if on_bus_geodata:
+                net.bus_geodata.loc[list(connected_nodes), "x"] = net.bus_geodata.x.at[bb_node]
+                net.bus_geodata.loc[list(connected_nodes), "y"] = net.bus_geodata.y.at[bb_node]
+            else:
+                net.bus.loc[list(connected_nodes), "geo"] = net.bus.at[bb_node, "geo"]
             all_connected_buses |= connected_nodes
 
 
@@ -392,6 +408,13 @@ def _set_vm_setpoint_to_trafos(net, csv_data):
                     idx_node].values
 
 
+def _set_dependency_table_parameters(net):
+    for et in ["trafo", "trafo3w", "shunt"]:
+        param = "step_dependency_table" if et == "shunt" else "tap_dependency_table"
+        if param in net[et].columns:
+            net[et][param] = False
+            net[et][param] = net[et][param].astype(bool)
+
 def _prepare_res_bus_table(net):
     """ Adds columns to be converted to csv_data. """
     if net.res_bus.shape[0]:
@@ -423,11 +446,12 @@ def replace_branch_switches(net, reserved_aux_node_names=None):
     else:
         # if replace_branch_switches() is called out of pp2csv_data(), this else statement is given
         subnets = net.bus.zone[idx_bus].values
-    geodata = net.bus_geodata.loc[idx_bus, ["x", "y"]].values if net["bus_geodata"].shape[0] else \
-        np.empty((len(idx_bus), 2))
     aux_buses = pp.create_buses(
         net, n_branch_switches, net.bus.vn_kv[idx_bus].values, name=names.values, type="auxiliary",
-        geodata=geodata, zone=subnets)
+        zone=subnets)
+    if "bus_geodata" in net.keys() and net["bus_geodata"].shape[0]:
+        net.bus_geodata = pd.concat([net.bus_geodata, pd.DataFrame(net.bus_geodata.loc[
+            idx_bus, ["x", "y"]].values, index=aux_buses, columns=["x", "y"])])
     for col in ["min_vm_pu", "max_vm_pu", "substation", "voltLvl"]:
         if col in net.bus.columns:
             net.bus.loc[aux_buses, col] = net.bus[col][idx_bus].values
@@ -509,9 +533,6 @@ def create_branch_switches(net):
     net.bus = net.bus.drop(aux_bus_df["aux_buses"])
     idx_in_res_bus = aux_bus_df["aux_buses"][aux_bus_df["aux_buses"].isin(net.res_bus.index)]
     net.res_bus = net.res_bus.drop(idx_in_res_bus)
-    idx_in_bus_geodata = aux_bus_df["aux_buses"][aux_bus_df["aux_buses"].isin(
-        net.bus_geodata.index)]
-    net.bus_geodata = net.bus_geodata.drop(idx_in_bus_geodata)
 
 
 def _add_coordID(net, highest_existing_coordinate_number):

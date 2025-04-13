@@ -33,6 +33,9 @@ def to_numeric_ignored_errors(data, **kwargs):
     """Wrapper function for pandas.to_numeric(). Needed to emulate previous behavior with deprecated
     errors="ignore".
 
+    The issue covered by this function is discussed at https://github.com/pandas-dev/pandas/issues/54467.
+    `df2 = df1.apply(pd.to_numeric, errors='coerce')` and `df2=df2.fillna(df1)` is an alternative way.
+
     Parameters
     ----------
     data : Series|DataFrame

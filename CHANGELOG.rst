@@ -1,12 +1,21 @@
 Change Log
 =============
 
+[1.6.0] - 2024-04-09
+----------------------
+- [CHANGED] support pandapower geojson, released with pandapower version 3.0.0
+- [ADDED] support pandapower parameters step_dependency_table and tap_dependency_table, released with pandapower version 3.0.0
+- [CHANGED] drop python 3.8 support
+- [FIXED] fix ValueError raise according to GitHub issue #56
+- [CHANGED] rename parameter csv2pp parameter `no_generic_coord` by `fill_bus_geo_by_generic_data`
+
 [1.5.3] - 2024-04-23
 ----------------------
 - [FIXED] Bringing together develop and master with all changes of the release process
 - [ADDED] generalization and test for auxiliary function :code:`to_numeric_ignored_errors()`
 
 [1.5.2] - 2024-04-09
+----------------------
 - [CHANGED] readded copyright notice to setup.py and updated date
 - [CHANGED] added prune to MANIFEST.in to exclude doc and tutorials from wheel builds
 - [CHANGED] removed gitlab ci files from MANIFEST.in to keep them out of wheel builds

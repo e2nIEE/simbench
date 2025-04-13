@@ -155,7 +155,7 @@ def test_convert_parallel_branches():
 
 
 def test_test_network():
-    net = csv2pp(test_network_path, no_generic_coord=True)
+    net = csv2pp(test_network_path, fill_bus_geo_by_generic_data=False)
 
     # test min/max ratio
     for elm in pp.pp_elements(bus=False, branch_elements=False, other_elements=False):
@@ -219,9 +219,9 @@ def test_example_simple():
         avoid_duplicates_in_column(net, i, 'name')
 
     # --- create geodata
-    net.bus_geodata["x"] = [0, 1, 2, 3, 4, 5, 5, 3.63]
-    net.bus_geodata["y"] = [0]*5+[-5, 5, 2.33]
-    merge_busbar_coordinates(net)
+    net.bus["geo"] = list(map(lambda xy: f'{{"type":"Point", "coordinates":[{xy[0]}, {xy[1]}]}}',
+                              zip([0., 1., 2., 3., 4., 5., 5., 3.63], [0.]*5+[-5., 5., 2.33])))
+    merge_busbar_coordinates(net, False)
 
     # --- convert
     csv_data = pp2csv_data(net, export_pp_std_types=True, drop_inactive_elements=True)
@@ -256,7 +256,7 @@ def test_example_simple():
                     logger.error("dtype adjustment of %s failed." % key)
             # drop result table rows
             if pp_is_27lower and "res_" in key:
-                if not key == "res_bus":
+                if key != "res_bus":
                     net[key] = net[key].iloc[0:0]
                 else:
                     net[key].loc[:, ["p_mw", "q_mvar"]] = np.nan

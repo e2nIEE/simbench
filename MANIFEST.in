@@ -4,5 +4,6 @@ global-include *.csv
 global-include *.json
 global-include *.txt
 
+prune .git*
 prune doc*
 prune tutorials*

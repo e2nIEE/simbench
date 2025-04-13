@@ -7,7 +7,7 @@ Installation Guide
 Installing Python
 ----------------------------
 
-simbench is tested with Python 3.5, 3.6 and 3.7. We recommend the Anaconda Distribution, which provides a Python distribution that already includes a lot of modules for scientific computing that are needed. Of course it is also possible to use simbench with other distributions besides Anaconda. Anyway, it is important that the following package is included:
+simbench is tested with multiple up-to-date Python versions. We recommend the Miniconda Distribution, which provides a Python distribution that already includes a lot of modules for scientific computing that are needed. Of course it is also possible to use simbench with other distributions besides Anaconda. Anyway, it is important that the following package is included:
 
 - pandapower
 
@@ -20,23 +20,15 @@ The easiest way to install simbench is through pip:
 
 1. Open a command prompt (e.g. start–>cmd on windows systems)
 
-2. If you already work with the pandapower development version from GitHub, but did not yet register it to pip:
-
-    a. Navigate your command prompt into your pandapower folder (with the command cd <folder>). 
-
-    b. Register pandapower to pip, to not install pandapower a second time, via typing:
-
-    :code:`pip install -e .`
-
-3. Install simbench by running:
+2. Install simbench by running:
 
     :code:`pip install simbench`
 
 
-Installing simbench without pip
+Installing simbench without internet connection
 --------------------------------------------------------
 
-If you don't have internet access on your system or don't want to use pip for some other reason, simbench can also be installed without using pip:
+If you don't have internet access on your system and already downloaded the repository (step 1), simbench can also be installed without from local files:
 
 1. Download and unzip the current simbench distribution from PyPi under "Download files".
 
@@ -46,7 +38,9 @@ If you don't have internet access on your system or don't want to use pip for so
 
 3. Install simbench by running :
 
-    :code:`python setup.py install`
+    :code:`pip install -e .`
+
+     This registers your local pandapower installation with pip, the option -e ensures the edits in the files have a direct impact on the pandapower installation.
 
 
 Development Version
@@ -66,7 +60,7 @@ To install the latest version of simbench from github, simply follow these steps
 
      :code:`pip install -e .`
 
-     This registers your local simbench installation with pip.
+     This registers your local pandapower installation with pip, the option -e ensures the edits in the files have a direct impact on the pandapower installation.
 
 
 Test your installation

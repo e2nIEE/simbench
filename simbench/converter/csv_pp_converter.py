@@ -3,7 +3,10 @@
 # contributors (see AUTHORS file for details). All rights reserved.
 
 # This is the csv_pp_converter for the simbench project.
-# pandapower 2.0.1 <-> simbench format (reasled status from 25.04.2019)
+
+# OPTIONAL IMPROVEMENTS for compatibility with future pandapower changes: constructing the
+# dataframes net[element_table] by using the create_buses(), create_lines(), ... functions
+# which where fast enough or not available at the time SimBench was developed.
 
 import os
 import pandas as pd
@@ -28,7 +31,7 @@ from simbench.converter.read_and_write import _init_csv_tables
 from simbench.converter.pp_net_manipulation import _extend_pandapower_net_columns, \
     _add_dspf_calc_type_and_phys_type_columns, _add_vm_va_setpoints_to_buses, \
     _prepare_res_bus_table, replace_branch_switches, create_branch_switches, _add_coordID, \
-    _set_vm_setpoint_to_trafos
+    _set_vm_setpoint_to_trafos, _set_dependency_table_parameters
 from simbench.converter.csv_data_manipulation import *
 from simbench.converter.csv_data_manipulation import _extend_coordinates_to_node_shape, \
     _sort_switch_nodes_and_prepare_element_and_et, \
@@ -42,7 +45,7 @@ logger = logging.getLogger(__name__)
 __author__ = 'smeinecke'
 
 
-def csv2pp(path, sep=';', add_folder_name=None, nrows=None, no_generic_coord=False):
+def csv2pp(path, sep=';', add_folder_name=None, nrows=None, fill_bus_geo_by_generic_data=True):
     """
     Conversion function from simbench csv format to pandapower.
 
@@ -58,8 +61,9 @@ def csv2pp(path, sep=';', add_folder_name=None, nrows=None, no_generic_coord=Fal
         **nrows** (int, None) - number of rows to be read for profiles. If None, all rows will be
         read.
 
-        **no_generic_coord** (bool, False) - if True, no generic coordinates are created in case of
-        missing geodata.
+        **fill_bus_geo_by_generic_data** (bool, False) - if False, no generic coordinates are
+        created in case of missing geo data. If True, generic coordinates are create when at least
+        one bus misses geo data.
 
     OUTPUT:
         **net** (pandapowerNet) - the created pandapower net from csv files data
@@ -79,17 +83,12 @@ def csv2pp(path, sep=';', add_folder_name=None, nrows=None, no_generic_coord=Fal
     csv_data = read_csv_data(path, sep, nrows=nrows)
 
     # run net creation
-    net = csv_data2pp(csv_data)
-
-    # ensure geodata
-    if not no_generic_coord and any(pd.isnull(net.bus_geodata.x) | pd.isnull(net.bus_geodata.y)):
-        del net.bus_geodata
-        create_generic_coordinates(net)
+    net = csv_data2pp(csv_data, fill_bus_geo_by_generic_data=fill_bus_geo_by_generic_data)
 
     return net
 
 
-def csv_data2pp(csv_data):
+def csv_data2pp(csv_data, fill_bus_geo_by_generic_data=False):
     """ Internal functionality of csv2pp, but with a given dict of csv_data as input instead of
         csv files. """
     # --- initializations
@@ -127,8 +126,20 @@ def csv_data2pp(csv_data):
     create_branch_switches(net)
     net.bus.loc[net.bus.type == "multi_auxiliary", "type"] = "auxiliary"
     _set_vm_setpoint_to_trafos(net, csv_data)
+    _set_dependency_table_parameters(net)
     _csv_types_to_pp2(net)
     ensure_bus_index_columns_as_int(net)
+
+    # --- ensure geodata
+    if not fill_bus_geo_by_generic_data:
+        if n_missing_geo_data := sum(pd.isnull(net.bus.geo) | (net.bus.geo == "")):
+            if n_missing_geo_data != len(net.bus):
+                logger.info(f"Due to {fill_bus_geo_by_generic_data=}, new generic geo data are "
+                            f"created and overwrite existing bus geo data ("
+                            f"{len(net.bus)-n_missing_geo_data} buses had geo data, "
+                            f"{n_missing_geo_data} buses missed geo data).")
+            net.bus["geo"] = None
+            create_generic_coordinates(net)
 
     return net
 
@@ -222,23 +233,23 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
     csv_data = _init_csv_tables(['elements', 'profiles', 'types', 'res_elements'])
     aux_nodes_are_reserved = reserved_aux_node_names is not None
 
+    if ("step_dependency_table" in net1.trafo.columns and net1.trafo.step_dependency_table.any()) \
+        or \
+        ("step_dependency_table" in net1.shunt.columns and net1.shunt.step_dependency_table.any()):
+        logger.warning("'step_dependency_table' is not supported in SimBench's csv data format.")
+
     # --- net data preparation for converting
     _extend_pandapower_net_columns(net)
     if drop_inactive_elements:
         # attention: trafo3ws are not considered in current version of drop_inactive_elements()
         pp.drop_inactive_elements(net, respect_switches=False)
-    check_results = pp.deviation_from_std_type(net)
-    if check_results:
+    dev_from_std = pp.deviation_from_std_type(net)
+    if dev_from_std:
         logger.warning("There are deviations from standard types in elements: " +
-                       str(["%s" % elm for elm in check_results.keys()]) + ". Only the standard " +
+                       str(["%s" % elm for elm in dev_from_std.keys()]) + ". Only the standard " +
                        "type values are converted to csv.")
     convert_parallel_branches(net)
-    if net.bus.shape[0] and not net.bus_geodata.shape[0] or (
-            net.bus_geodata.shape[0] != net.bus.shape[0]):
-        logger.info("Since there are no or incomplete bus_geodata, generic geodata are assumed.")
-        net.bus_geodata = net.bus_geodata.iloc[0:0]
-        create_generic_coordinates(net)
-    merge_busbar_coordinates(net)
+    merge_busbar_coordinates(net, True)
     move_slack_gens_to_ext_grid(net)
 
     scaling_is_not_1 = []
@@ -319,7 +330,8 @@ def _log_nan_col(csv_data, tablename, col):
 
 
 def _is_pp_type(data):
-    return "name" in data.keys()  # used instead of isinstance(data, pp.auxiliary.pandapowerNet)
+    return isinstance(data, pp.auxiliary.pandapowerNet)
+    # return bool("name" in data.keys())
 
 
 def convert_node_type(data):
@@ -679,7 +691,7 @@ def _rename_and_split_input_tables(data):
     split_ppelm_into_type_and_elm = ["dcline"] if _is_pp_type(data) else []
     input_elm_col = "pp" if _is_pp_type(data) else "csv"
     output_elm_col = "csv" if _is_pp_type(data) else "pp"
-    corr_df = _csv_table_pp_dataframe_correspondings(pd.DataFrame)
+    corr_df = _csv_table_pp_dataframe_correspondings(pd.DataFrame, not _is_pp_type(data))
     corr_df["comb_str"] = corr_df["csv"] + "*" + corr_df["pp"]
 
     # all elements, which need to be converted to multiple output element tables, (dupl) need to be
@@ -726,7 +738,7 @@ def _get_split_gen_val(element):
 
 def _rename_and_multiply_columns(data):
     """ Renames the columns of all dataframes as needed in output data. """
-    to_rename_and_multiply_tuples = _get_parameters_to_rename_and_multiply()
+    to_rename_and_multiply_tuples = _get_parameters_to_rename_and_multiply(True)
     for corr_str, tuples in to_rename_and_multiply_tuples.items():
         # --- remove "type" from data if "std_type" exists too
         if "std_type" in data[corr_str].columns and "type" in data[corr_str].columns and \
@@ -756,7 +768,7 @@ def _rename_and_multiply_columns(data):
             data[corr_str].loc[:, col] *= factors
 
 
-def _get_parameters_to_rename_and_multiply():
+def _get_parameters_to_rename_and_multiply(drop_bus_geodata):
     """ Returns a dict of tuples and a dict of dataframes where csv column names are assigned to
     pandapower columns names which differ. """
     # --- create dummy_net to get pp columns
@@ -770,8 +782,8 @@ def _get_parameters_to_rename_and_multiply():
         dummy_net[elm]["va_degree"] = np.nan
 
     # --- get corresponding tables and dataframes
-    corr_strings = _csv_table_pp_dataframe_correspondings(str)
-    csv_tablenames_, pp_dfnames = _csv_table_pp_dataframe_correspondings(list)
+    corr_strings = _csv_table_pp_dataframe_correspondings(str, drop_bus_geodata)
+    csv_tablenames_, pp_dfnames = _csv_table_pp_dataframe_correspondings(list, drop_bus_geodata)
 
     # --- initialize tuples_dict
     tuples_dict = dict.fromkeys(corr_strings, [("id", "name", None)])
@@ -803,7 +815,7 @@ def _replace_name_index(data):
         indices. This function replaces the assignment of the input data. """
     node_names = {"node", "nodeA", "nodeB", "nodeHV", "nodeMV", "nodeLV"}
     bus_names = {"bus", "from_bus", "to_bus", "hv_bus", "mv_bus", "lv_bus"}
-    corr_strings = _csv_table_pp_dataframe_correspondings(str)
+    corr_strings = _csv_table_pp_dataframe_correspondings(str, True)
     corr_strings.remove("Measurement*measurement")  # already done in convert_measurement()
 
     if _is_pp_type(data):
@@ -843,8 +855,9 @@ def _copy_data(input_data, output_data):
     """ Copies the data from output_data[corr_strings] into input_data[element_table]. This function
         handles that some corr_strings are not in output_data.keys() and copies all columns which
         exists in both, output_data[corr_strings] and input_data[element_table]. """
-    corr_strings = _csv_table_pp_dataframe_correspondings(str)
-    output_names = _csv_table_pp_dataframe_correspondings(list)[int(_is_pp_type(output_data))]
+    out_is_pp = _is_pp_type(output_data)
+    corr_strings = _csv_table_pp_dataframe_correspondings(str, out_is_pp)
+    output_names = _csv_table_pp_dataframe_correspondings(list, out_is_pp)[int(out_is_pp)]
 
     for corr_str, output_name in zip(corr_strings, output_names):
         if corr_str in input_data.keys() and input_data[corr_str].shape[0]:
@@ -869,7 +882,7 @@ def _copy_data(input_data, output_data):
                 output_data[output_name] = pd.concat([output_data[output_name], input_data[
                     corr_str][cols_to_copy]], ignore_index=True).reindex_axis(output_data[
                         output_name].columns, axis=1)
-            if "std_types" in corr_str and _is_pp_type(output_data):
+            if "std_types" in corr_str and out_is_pp:
                 output_data[output_name].index = input_data[corr_str]["std_type"]
             _inscribe_fix_values(output_data, output_name)
 
