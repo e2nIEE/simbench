@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[1.6.0] - 2024-xx-xx
+[1.6.0] - 2024-04-09
 ----------------------
 - [CHANGED] support pandapower geojson, released with pandapower version 3.0.0
 - [ADDED] support pandapower parameters step_dependency_table and tap_dependency_table, released with pandapower version 3.0.0
