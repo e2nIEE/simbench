@@ -1,6 +1,9 @@
 Change Log
 =============
 
+[x.x.x] - 20xx-xx-xx
+----------------------
+
 [1.6.1] - 2024-04-13
 ----------------------
 - [CHANGED] nothing - just a correct upload to pypi
