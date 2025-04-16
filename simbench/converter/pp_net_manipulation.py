@@ -409,8 +409,14 @@ def _set_vm_setpoint_to_trafos(net, csv_data):
 
 
 def _set_dependency_table_parameters(net):
-    for et in ["trafo", "trafo3w", "shunt"]:
-        param = "step_dependency_table" if et == "shunt" else "tap_dependency_table"
+    et_params = [
+        ("trafo", "tap_dependency_table"),
+        ("trafo3w", "tap_dependency_table"),
+        ("shunt", "step_dependency_table"),
+        ("gen", "curve_dependency_table"),
+        ("sgen", "curve_dependency_table"),
+        ] # parameters that would be casted from NaN to True but should be False by default
+    for et, param in et_params:
         if param in net[et].columns:
             net[et][param] = False
             net[et][param] = net[et][param].astype(bool)

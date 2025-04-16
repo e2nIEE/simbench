@@ -3,6 +3,7 @@ Change Log
 
 [x.x.x] - 20xx-xx-xx
 ----------------------
+- [CHANGED] extended the list of parameters (new in pandapower) that would be casted from NaN to True (without adaption in the converter function `csv_csv_data2pp() `) but should be False by default
 
 [1.6.1] - 2024-04-13
 ----------------------
