@@ -24,28 +24,47 @@ except ImportError:
 
 from simbench.converter.auxiliary import *
 from simbench.converter.format_information import *
-from simbench.converter.format_information import _correct_calc_type, \
-    _csv_table_pp_dataframe_correspondings, _csv_pp_column_correspondings
+from simbench.converter.format_information import (
+    _correct_calc_type,
+    _csv_table_pp_dataframe_correspondings,
+    _csv_pp_column_correspondings,
+)
 from simbench.converter.read_and_write import *
 from simbench.converter.read_and_write import _init_csv_tables
-from simbench.converter.pp_net_manipulation import _extend_pandapower_net_columns, \
-    _add_dspf_calc_type_and_phys_type_columns, _add_vm_va_setpoints_to_buses, \
-    _prepare_res_bus_table, replace_branch_switches, create_branch_switches, _add_coordID, \
-    _set_vm_setpoint_to_trafos, _set_dependency_table_parameters
+from simbench.converter.pp_net_manipulation import (
+    _extend_pandapower_net_columns,
+    _add_dspf_calc_type_and_phys_type_columns,
+    _add_vm_va_setpoints_to_buses,
+    _prepare_res_bus_table,
+    replace_branch_switches,
+    create_branch_switches,
+    _add_coordID,
+    _set_vm_setpoint_to_trafos,
+    _set_dependency_table_parameters,
+)
 from simbench.converter.csv_data_manipulation import *
-from simbench.converter.csv_data_manipulation import _extend_coordinates_to_node_shape, \
-    _sort_switch_nodes_and_prepare_element_and_et, \
-    _ensure_single_switch_at_aux_node_and_copy_vm_setp, \
-    _add_phys_type_and_vm_va_setpoints_to_element_tables, \
-    _ensure_safe_csv_ids, _correct_autoTapSide_of_nonTapTrafos
+from simbench.converter.csv_data_manipulation import (
+    _extend_coordinates_to_node_shape,
+    _sort_switch_nodes_and_prepare_element_and_et,
+    _ensure_single_switch_at_aux_node_and_copy_vm_setp,
+    _add_phys_type_and_vm_va_setpoints_to_element_tables,
+    _ensure_safe_csv_ids,
+    _correct_autoTapSide_of_nonTapTrafos,
+)
 from simbench.converter.pp_net_manipulation import *
 
 logger = logging.getLogger(__name__)
 
-__author__ = 'smeinecke'
+__author__ = "smeinecke"
 
 
-def csv2pp(path, sep=';', add_folder_name=None, nrows=None, fill_bus_geo_by_generic_data=True):
+def csv2pp(
+    path,
+    sep=";",
+    add_folder_name=None,
+    nrows=None,
+    fill_bus_geo_by_generic_data=True,
+):
     """
     Conversion function from simbench csv format to pandapower.
 
@@ -76,21 +95,23 @@ def csv2pp(path, sep=';', add_folder_name=None, nrows=None, fill_bus_geo_by_gene
     """
     # --- create repository for csv files
     if not isinstance(path, str):
-        logger.error('The path must be given as a string')
+        logger.error("The path must be given as a string")
     path = os.path.join(path, add_folder_name) if add_folder_name else path
 
     # --- read csv_data
     csv_data = read_csv_data(path, sep, nrows=nrows)
 
     # run net creation
-    net = csv_data2pp(csv_data, fill_bus_geo_by_generic_data=fill_bus_geo_by_generic_data)
+    net = csv_data2pp(
+        csv_data, fill_bus_geo_by_generic_data=fill_bus_geo_by_generic_data
+    )
 
     return net
 
 
 def csv_data2pp(csv_data, fill_bus_geo_by_generic_data=False):
-    """ Internal functionality of csv2pp, but with a given dict of csv_data as input instead of
-        csv files. """
+    """Internal functionality of csv2pp, but with a given dict of csv_data as input instead of
+    csv files."""
     # --- initializations
     csv_data = deepcopy(csv_data)
     net = pp.create_empty_network()
@@ -102,7 +123,9 @@ def csv_data2pp(csv_data, fill_bus_geo_by_generic_data=False):
     # --- correction of csv_data and preperation for converting
     _ensure_safe_csv_ids(csv_data)
     reindex_dict_dataframes(csv_data)
-    _ensure_single_switch_at_aux_node_and_copy_vm_setp(csv_data, new_type_name="multi_auxiliary")
+    _ensure_single_switch_at_aux_node_and_copy_vm_setp(
+        csv_data, new_type_name="multi_auxiliary"
+    )
     _convert_measurement(csv_data)
     _sort_switch_nodes_and_prepare_element_and_et(csv_data)
     convert_node_type(csv_data)
@@ -113,12 +136,16 @@ def csv_data2pp(csv_data, fill_bus_geo_by_generic_data=False):
     convert_line_type_acronym(csv_data)
     if not csv_data["Transformer"]["autoTapSide"].isnull().all():
         csv_data["Transformer"]["autoTapSide"] = csv_data["Transformer"][
-            "autoTapSide"].str.lower()
+            "autoTapSide"
+        ].str.lower()
 
     # --- convert csv_data
     _csv_profiles_to_pp(net, csv_data)
-    if "StudyCases" in csv_data.keys() and isinstance(csv_data["StudyCases"], pd.DataFrame) and \
-       csv_data["StudyCases"].shape[0]:
+    if (
+        "StudyCases" in csv_data.keys()
+        and isinstance(csv_data["StudyCases"], pd.DataFrame)
+        and csv_data["StudyCases"].shape[0]
+    ):
         net["loadcases"] = csv_data["StudyCases"]
     _csv_types_to_pp1(net, csv_data)
     _multi_parameter_determination(csv_data)
@@ -132,21 +159,35 @@ def csv_data2pp(csv_data, fill_bus_geo_by_generic_data=False):
 
     # --- ensure geodata
     if not fill_bus_geo_by_generic_data:
-        if n_missing_geo_data := sum(pd.isnull(net.bus.geo) | (net.bus.geo == "")):
+        if n_missing_geo_data := sum(
+            pd.isnull(net.bus.geo) | (net.bus.geo == "")
+        ):
             if n_missing_geo_data != len(net.bus):
-                logger.info(f"Due to {fill_bus_geo_by_generic_data=}, new generic geo data are "
-                            f"created and overwrite existing bus geo data ("
-                            f"{len(net.bus)-n_missing_geo_data} buses had geo data, "
-                            f"{n_missing_geo_data} buses missed geo data).")
+                logger.info(
+                    f"Due to {fill_bus_geo_by_generic_data=}, new generic geo data are "
+                    f"created and overwrite existing bus geo data ("
+                    f"{len(net.bus)-n_missing_geo_data} buses had geo data, "
+                    f"{n_missing_geo_data} buses missed geo data)."
+                )
             net.bus["geo"] = None
             create_generic_coordinates(net)
 
     return net
 
 
-def pp2csv(net1, path, export_pp_std_types=False, sep=';', exclude_table=set(), nrows=None,
-           mode='w', keep='last', drop_inactive_elements=True,
-           round_qLoad_by_voltLvl=False, reserved_aux_node_names=None):
+def pp2csv(
+    net1,
+    path,
+    export_pp_std_types=False,
+    sep=";",
+    exclude_table=set(),
+    nrows=None,
+    mode="w",
+    keep="last",
+    drop_inactive_elements=True,
+    round_qLoad_by_voltLvl=False,
+    reserved_aux_node_names=None,
+):
     """
     Conversion function from pandapower to simbench csv format.
 
@@ -198,9 +239,11 @@ def pp2csv(net1, path, export_pp_std_types=False, sep=';', exclude_table=set(), 
     # --- determine the highest existing coordinate number for case of mode == "append_unique"
     highest_existing_coordinate_number = -1
     aux_nodes_are_reserved = reserved_aux_node_names is not None
-    reserved_aux_node_names = reserved_aux_node_names if aux_nodes_are_reserved else set()
+    reserved_aux_node_names = (
+        reserved_aux_node_names if aux_nodes_are_reserved else set()
+    )
     if mode == "append_unique":
-        coords = read_csv_data(path, sep, 'Coordinates')
+        coords = read_csv_data(path, sep, "Coordinates")
         if coords.shape[0]:
             idx = coords.id.str.startswith("coord_")
             coords_split = coords.id.loc[idx].str.split("coord_")
@@ -209,34 +252,60 @@ def pp2csv(net1, path, export_pp_std_types=False, sep=';', exclude_table=set(), 
 
     # --- create csv data and res data as dicts of DataFrames
     csv_data, reserved_aux_node_names = pp2csv_data(
-        net1, export_pp_std_types=export_pp_std_types,
+        net1,
+        export_pp_std_types=export_pp_std_types,
         drop_inactive_elements=drop_inactive_elements,
         highest_existing_coordinate_number=highest_existing_coordinate_number,
         round_qLoad_by_voltLvl=round_qLoad_by_voltLvl,
-        reserved_aux_node_names=reserved_aux_node_names)
+        reserved_aux_node_names=reserved_aux_node_names,
+    )
 
     # --- export the grid data dict DataFrames to csv files
-    write2csv(path, csv_data, mode=mode, sep=sep, float_format='%g',
-              keys=set(csv_data.keys())-exclude_table, keep=keep, nrows=nrows)
+    write2csv(
+        path,
+        csv_data,
+        mode=mode,
+        sep=sep,
+        float_format="%g",
+        keys=set(csv_data.keys()) - exclude_table,
+        keep=keep,
+        nrows=nrows,
+    )
 
     if aux_nodes_are_reserved:
         return reserved_aux_node_names
 
 
-def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
-                highest_existing_coordinate_number=-1, round_qLoad_by_voltLvl=False,
-                reserved_aux_node_names=None):
-    """ Internal functionality of pp2csv, but without writing the determined dict to csv files.
-    For parameter explanations, please have a look at the pp2csv() docstring. """
+def pp2csv_data(
+    net1,
+    export_pp_std_types=False,
+    drop_inactive_elements=True,
+    highest_existing_coordinate_number=-1,
+    round_qLoad_by_voltLvl=False,
+    reserved_aux_node_names=None,
+):
+    """Internal functionality of pp2csv, but without writing the determined dict to csv files.
+    For parameter explanations, please have a look at the pp2csv() docstring.
+    """
     # --- initializations
-    net = deepcopy(net1)  # necessary because in net will be changed in converter function
-    csv_data = _init_csv_tables(['elements', 'profiles', 'types', 'res_elements'])
+    net = deepcopy(
+        net1
+    )  # necessary because in net will be changed in converter function
+    csv_data = _init_csv_tables(
+        ["elements", "profiles", "types", "res_elements"]
+    )
     aux_nodes_are_reserved = reserved_aux_node_names is not None
 
-    if ("step_dependency_table" in net1.trafo.columns and net1.trafo.step_dependency_table.any()) \
-        or \
-        ("step_dependency_table" in net1.shunt.columns and net1.shunt.step_dependency_table.any()):
-        logger.warning("'step_dependency_table' is not supported in SimBench's csv data format.")
+    if (
+        "step_dependency_table" in net1.trafo.columns
+        and net1.trafo.step_dependency_table.any()
+    ) or (
+        "step_dependency_table" in net1.shunt.columns
+        and net1.shunt.step_dependency_table.any()
+    ):
+        logger.warning(
+            "'step_dependency_table' is not supported in SimBench's csv data format."
+        )
 
     # --- net data preparation for converting
     _extend_pandapower_net_columns(net)
@@ -245,9 +314,12 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
         pp.drop_inactive_elements(net, respect_switches=False)
     dev_from_std = pp.deviation_from_std_type(net)
     if dev_from_std:
-        logger.warning("There are deviations from standard types in elements: " +
-                       str(["%s" % elm for elm in dev_from_std.keys()]) + ". Only the standard " +
-                       "type values are converted to csv.")
+        logger.warning(
+            "There are deviations from standard types in elements: "
+            + str(["%s" % elm for elm in dev_from_std.keys()])
+            + ". Only the standard "
+            + "type values are converted to csv."
+        )
     convert_parallel_branches(net)
     merge_busbar_coordinates(net, True)
     move_slack_gens_to_ext_grid(net)
@@ -255,18 +327,24 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
     scaling_is_not_1 = []
     for i in pp.pp_elements():
         # prevent elements without name
-        net[i] = ensure_full_column_data_existence(net, i, 'name')
-        avoid_duplicates_in_column(net, i, 'name')
+        net[i] = ensure_full_column_data_existence(net, i, "name")
+        avoid_duplicates_in_column(net, i, "name")
         # log scaling factor different from 1
         if "scaling" in net[i].columns:
             if not np.allclose(net[i]["scaling"].values, 1):
                 scaling_is_not_1 += [i]
     if len(scaling_is_not_1):
-        logger.warning("In elements " + str(scaling_is_not_1) + ", the parameter 'scaling' " +
-                       "differs from 1, which is not converted.")
+        logger.warning(
+            "In elements "
+            + str(scaling_is_not_1)
+            + ", the parameter 'scaling' "
+            + "differs from 1, which is not converted."
+        )
     # log min_e_mwh
-    if not np.allclose(net.storage["min_e_mwh"].dropna().values, 0.):
-        logger.warning("Storage parameter 'min_e_mwh' is not converted but differs from 0.")
+    if not np.allclose(net.storage["min_e_mwh"].dropna().values, 0.0):
+        logger.warning(
+            "Storage parameter 'min_e_mwh' is not converted but differs from 0."
+        )
 
     # further preparation
     provide_subnet_col(net)
@@ -276,7 +354,9 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
     _add_dspf_calc_type_and_phys_type_columns(net)
     _add_vm_va_setpoints_to_buses(net)
     _prepare_res_bus_table(net)
-    reserved_aux_node_names = replace_branch_switches(net, reserved_aux_node_names)
+    reserved_aux_node_names = replace_branch_switches(
+        net, reserved_aux_node_names
+    )
     _convert_measurement(net)
     _add_coordID(net, highest_existing_coordinate_number)
     if not net["trafo"]["autoTapSide"].isnull().all():
@@ -308,15 +388,16 @@ def pp2csv_data(net1, export_pp_std_types=False, drop_inactive_elements=True,
 def _round_qLoad_by_voltLvl(csv_data):
     for voltLvl, decimals in zip([2, 4, 6, 7], [2, 3, 4, 6]):
         this_voltLvl = csv_data["Load"].voltLvl <= voltLvl
-        csv_data["Load"].loc[this_voltLvl, "qLoad"] = np.around(csv_data["Load"]["qLoad"].loc[
-            this_voltLvl].values, decimals)
+        csv_data["Load"].loc[this_voltLvl, "qLoad"] = np.around(
+            csv_data["Load"]["qLoad"].loc[this_voltLvl].values, decimals
+        )
 
 
 def _check_id_voltLvl_subnet(csv_data):
     # --- ensure every data has an id and test for missing voltLvl and subnet
-    for tablename in csv_tablenames(['types']):
+    for tablename in csv_tablenames(["types"]):
         _log_nan_col(csv_data, tablename, "id")
-    for tablename in csv_tablenames('elements'):
+    for tablename in csv_tablenames("elements"):
         _log_nan_col(csv_data, tablename, "id")
         if tablename != "Coordinates":
             _log_nan_col(csv_data, tablename, "voltLvl")
@@ -326,7 +407,9 @@ def _check_id_voltLvl_subnet(csv_data):
 def _log_nan_col(csv_data, tablename, col):
     nans = sum(csv_data[tablename][col].isnull())
     if nans:
-        logger.info("There are %i %s without %s data." % (nans, tablename, col))
+        logger.info(
+            "There are %i %s without %s data." % (nans, tablename, col)
+        )
 
 
 def _is_pp_type(data):
@@ -335,59 +418,80 @@ def _is_pp_type(data):
 
 
 def convert_node_type(data):
-    """ Convertes csv_data["Node"] to short type names and net["bus"] to long type names. """
+    """Convertes csv_data["Node"] to short type names and net["bus"] to long type names."""
     if _is_pp_type(data):
-        full_names = {"b": "busbar", "m": "muffe", "n": "node", "db": "double busbar"}
+        full_names = {
+            "b": "busbar",
+            "m": "muffe",
+            "n": "node",
+            "db": "double busbar",
+        }
         for short, long in full_names.items():
             fit = data["bus"].type == short
             data["bus"].loc[fit, "type"] = long
     else:
         not_auxiliary = ~data["Node"].type.str.contains("auxiliary")
         if sum(not_auxiliary):
-            space_split = data["Node"].type[not_auxiliary].str.split(" ", expand=True)
+            space_split = (
+                data["Node"].type[not_auxiliary].str.split(" ", expand=True)
+            )
             if 1 in space_split.columns:
-                data["Node"].loc[not_auxiliary, "type"] = space_split[0].str[0] + \
-                    space_split[1].str[0].fillna("")
+                data["Node"].loc[not_auxiliary, "type"] = space_split[0].str[
+                    0
+                ] + space_split[1].str[0].fillna("")
             else:
                 data["Node"].loc[not_auxiliary, "type"] = space_split[0].str[0]
 
 
 def convert_line_type_acronym(data):
-    """ Convertes type of csv_data["LineType"] or net.std_types["line"]: cs <-> cable, ol <-> ohl
-    """
+    """Convertes type of csv_data["LineType"] or net.std_types["line"]: cs <-> cable, ol <-> ohl"""
     if _is_pp_type(data):
         if "type" not in data.std_types["line"].columns:
             data.std_types["line"]["type"] = ""
         data.std_types["line"]["type"] = data.std_types["line"].type.replace(
-            {"cs": "cable", "ol": "ohl"})
+            {"cs": "cable", "ol": "ohl"}
+        )
     else:
         if "type" not in data["LineType"].columns:
             data["LineType"]["type"] = ""
-        data["LineType"]["type"] = data["LineType"].type.replace({"cable": "cs", "ohl": "ol"})
+        data["LineType"]["type"] = data["LineType"].type.replace(
+            {"cable": "cs", "ohl": "ol"}
+        )
 
 
 def _convert_measurement(data):
-    """ Converts the measurement columns "side", "element", "measurement_type", respectively
-        "element1", "element2", "variable". """
+    """Converts the measurement columns "side", "element", "measurement_type", respectively
+    "element1", "element2", "variable"."""
     if _is_pp_type(data):
         rename_dict = {"side": "element1", "measurement_type": "variable"}
         data["measurement"] = data["measurement"].rename(columns=rename_dict)
         data["measurement"]["element2"] = ""
         for element_type in ["trafo", "line", "bus"]:
-            idx = data["measurement"].index[data["measurement"]["element_type"] == element_type]
+            idx = data["measurement"].index[
+                data["measurement"]["element_type"] == element_type
+            ]
             if element_type in ["trafo", "line"]:
                 this_branch_measurements = data["measurement"].loc[idx]
                 for side in this_branch_measurements["element1"].unique():
                     idx_side = this_branch_measurements.index[
-                        this_branch_measurements["element1"] == side]
-                    data["measurement"].loc[idx_side, "element1"] = data.bus.name.loc[data[
-                        element_type][side+"_bus"].loc[data["measurement"]["element"].loc[
-                            idx_side]]].values
-                data["measurement"].loc[idx, "element2"] = data[element_type].name.loc[data[
-                    "measurement"]["element"].loc[idx]].values
+                        this_branch_measurements["element1"] == side
+                    ]
+                    data["measurement"].loc[idx_side, "element1"] = (
+                        data.bus.name.loc[
+                            data[element_type][side + "_bus"].loc[
+                                data["measurement"]["element"].loc[idx_side]
+                            ]
+                        ].values
+                    )
+                data["measurement"].loc[idx, "element2"] = (
+                    data[element_type]
+                    .name.loc[data["measurement"]["element"].loc[idx]]
+                    .values
+                )
             else:
-                data["measurement"].loc[idx, "element1"] = data.bus.name.loc[data["measurement"][
-                    "element"][idx]].values
+                data["measurement"].loc[idx, "element1"] = data.bus.name.loc[
+                    data["measurement"]["element"][idx]
+                ].values
         del data["measurement"]["element"]
     else:
         rename_dict = {"element": "element2", "measurement_type": "variable"}
@@ -396,147 +500,228 @@ def _convert_measurement(data):
         data["Measurement"] = data["Measurement"].rename(columns=rename_dict)
 
         # --- determine which measurement indices are which element type -> fill "element_type"
-        idx_trafo = data["Measurement"].index[data["Measurement"]["element"].isin(data[
-            "Transformer"]["id"])].astype(int)
-        idx_line = data["Measurement"].index[data["Measurement"]["element"].isin(data[
-            "Line"]["id"])].astype(int)
-        idx_bus = data["Measurement"].index.difference(idx_line.union(idx_trafo)).astype(int)
+        idx_trafo = (
+            data["Measurement"]
+            .index[
+                data["Measurement"]["element"].isin(data["Transformer"]["id"])
+            ]
+            .astype(int)
+        )
+        idx_line = (
+            data["Measurement"]
+            .index[data["Measurement"]["element"].isin(data["Line"]["id"])]
+            .astype(int)
+        )
+        idx_bus = (
+            data["Measurement"]
+            .index.difference(idx_line.union(idx_trafo))
+            .astype(int)
+        )
         n_no_element2_info = data["Measurement"]["element"].isnull().sum()
         if n_no_element2_info != len(idx_bus):
-            logger.warning("%i Measurement have no element2 info, but " % n_no_element2_info +
-                           "%i are assumed as bus measurements. " % len(idx_bus) +
-                           "Most likely there are line or " +
-                           "trafo names given in element2 which do not exist in the " +
-                           "csv_data[element] table.")
+            logger.warning(
+                "%i Measurement have no element2 info, but "
+                % n_no_element2_info
+                + "%i are assumed as bus measurements. " % len(idx_bus)
+                + "Most likely there are line or "
+                + "trafo names given in element2 which do not exist in the "
+                + "csv_data[element] table."
+            )
         data["Measurement"]["element_type"] = "bus"
         data["Measurement"].loc[idx_trafo, "element_type"] = "trafo"
         data["Measurement"].loc[idx_line, "element_type"] = "line"
 
         # --- fill "element" column
-        data["Measurement"].loc[idx_trafo, "element"] = data["Transformer"].index[
-            idx_in_2nd_array(data["Measurement"]["element"].loc[idx_trafo].values,
-                             data["Transformer"]["id"].values)]
-        data["Measurement"].loc[idx_line, "element"] = data["Line"].index[idx_in_2nd_array(
-            data["Measurement"]["element"].loc[idx_line].values, data["Line"]["id"].values)]
-        data["Measurement"].loc[idx_bus, "element"] = data["Node"].index[idx_in_2nd_array(
-            data["Measurement"]["element1"].loc[idx_bus].values, data["Node"]["id"].values)]
+        data["Measurement"].loc[idx_trafo, "element"] = data[
+            "Transformer"
+        ].index[
+            idx_in_2nd_array(
+                data["Measurement"]["element"].loc[idx_trafo].values,
+                data["Transformer"]["id"].values,
+            )
+        ]
+        data["Measurement"].loc[idx_line, "element"] = data["Line"].index[
+            idx_in_2nd_array(
+                data["Measurement"]["element"].loc[idx_line].values,
+                data["Line"]["id"].values,
+            )
+        ]
+        data["Measurement"].loc[idx_bus, "element"] = data["Node"].index[
+            idx_in_2nd_array(
+                data["Measurement"]["element1"].loc[idx_bus].values,
+                data["Node"]["id"].values,
+            )
+        ]
 
         # --- fill "side" column
-        bus_indices = data["Node"].index[idx_in_2nd_array(data["Measurement"][
-            "element1"].values, data["Node"]["id"].values)]
-        bus_names = pd.Series(data["Node"]["id"].loc[bus_indices].values,
-                              index=data["Measurement"].index)
+        bus_indices = data["Node"].index[
+            idx_in_2nd_array(
+                data["Measurement"]["element1"].values,
+                data["Node"]["id"].values,
+            )
+        ]
+        bus_names = pd.Series(
+            data["Node"]["id"].loc[bus_indices].values,
+            index=data["Measurement"].index,
+        )
         data["Measurement"]["side"] = ""
-        are_hv = ensure_iterability(bus_names.loc[idx_trafo].values == data[
-            "Transformer"]["nodeHV"].loc[data["Measurement"]["element"].loc[idx_trafo]].values)
-        data["Measurement"].loc[idx_trafo, "side"] = ["hv" if is_hv else "lv" for is_hv in are_hv]
-        are_from = ensure_iterability(bus_names.loc[idx_line].values == data[
-                "Line"]["nodeA"].loc[data["Measurement"]["element"].loc[idx_line]].values)
-        data["Measurement"].loc[idx_line, "side"] = ["from" if is_from else "to" for is_from in
-                                                     are_from]
-        data["Measurement"].loc[data["Measurement"]["side"] == "", "side"] = None
+        are_hv = ensure_iterability(
+            bus_names.loc[idx_trafo].values
+            == data["Transformer"]["nodeHV"]
+            .loc[data["Measurement"]["element"].loc[idx_trafo]]
+            .values
+        )
+        data["Measurement"].loc[idx_trafo, "side"] = [
+            "hv" if is_hv else "lv" for is_hv in are_hv
+        ]
+        are_from = ensure_iterability(
+            bus_names.loc[idx_line].values
+            == data["Line"]["nodeA"]
+            .loc[data["Measurement"]["element"].loc[idx_line]]
+            .values
+        )
+        data["Measurement"].loc[idx_line, "side"] = [
+            "from" if is_from else "to" for is_from in are_from
+        ]
+        data["Measurement"].loc[
+            data["Measurement"]["side"] == "", "side"
+        ] = None
         del data["Measurement"]["element1"]
 
 
 def _sort_measurement_elements(csv_data):
-    """ Switches element1 and element2 data in measurement table, if element2 is in node names.
-    As a result, no node names are in element2 column. """
-    idx_el1_is_node = csv_data["Measurement"].element1.isin(csv_data["Node"].id)
-    idx_el2_is_node = csv_data["Measurement"].element2.isin(csv_data["Node"].id)
+    """Switches element1 and element2 data in measurement table, if element2 is in node names.
+    As a result, no node names are in element2 column."""
+    idx_el1_is_node = csv_data["Measurement"].element1.isin(
+        csv_data["Node"].id
+    )
+    idx_el2_is_node = csv_data["Measurement"].element2.isin(
+        csv_data["Node"].id
+    )
     idx_both_is_node = idx_el1_is_node & idx_el2_is_node
     if sum(idx_both_is_node):
-        raise ValueError("In measurement table, element1 and element2 are node names in the" +
-                         "indices: " + str(list(idx_both_is_node)))
+        raise ValueError(
+            "In measurement table, element1 and element2 are node names in the"
+            + "indices: "
+            + str(list(idx_both_is_node))
+        )
 
     el1_data = deepcopy(csv_data["Measurement"].element1[idx_el2_is_node])
-    csv_data["Measurement"].loc[idx_el2_is_node, "element1"] = csv_data["Measurement"].element2[
-        idx_el2_is_node]
+    csv_data["Measurement"].loc[idx_el2_is_node, "element1"] = csv_data[
+        "Measurement"
+    ].element2[idx_el2_is_node]
     csv_data["Measurement"].loc[idx_el2_is_node, "element2"] = el1_data
 
 
 def _csv_profiles_to_pp(net, csv_data):
-    """ Creates a dict 'profiles' in pp net. """
-    for csv_name, pp_name in zip(csv_tablenames("profiles"), pp_profile_names()):
+    """Creates a dict 'profiles' in pp net."""
+    for csv_name, pp_name in zip(
+        csv_tablenames("profiles"), pp_profile_names()
+    ):
         if csv_data[csv_name].shape[0] > 0:
-            net['profiles'][pp_name] = csv_data[csv_name]
+            net["profiles"][pp_name] = csv_data[csv_name]
 
 
 def _pp_profiles_to_csv(net, csv_data):
-    """ Copies each dataframe from net.profiles into the 'csv_data'. """
-    for csv_name, pp_name in zip(csv_tablenames("profiles"), pp_profile_names()):
+    """Copies each dataframe from net.profiles into the 'csv_data'."""
+    for csv_name, pp_name in zip(
+        csv_tablenames("profiles"), pp_profile_names()
+    ):
         try:
-            csv_data[csv_name] = net['profiles'][pp_name]
+            csv_data[csv_name] = net["profiles"][pp_name]
         except (KeyError, AttributeError):
             # csv_data[csv_name] = pd.DataFrame()  # redundant since _init_csv_tables() is performed
-            logger.info('The profiles of %s could not be stored.' % pp_name)
+            logger.info("The profiles of %s could not be stored." % pp_name)
 
 
 def _csv_types_to_pp1(net, csv_data):
-    """ In general, only line, trafo und trafo3w are saved in pp net.std_types
-        (see _csv_types_to_pp2()). Consequently, this function prepares converting type data of
-        dcline and storage.
-        Additionally, lower case tapside values are ensured.
+    """In general, only line, trafo und trafo3w are saved in pp net.std_types
+    (see _csv_types_to_pp2()). Consequently, this function prepares converting type data of
+    dcline and storage.
+    Additionally, lower case tapside values are ensured.
     """
     # --- splitting Line table into a table with dcline data and line data
-    idx_lines = csv_data["Line"].index[csv_data["Line"].type.isin(csv_data["LineType"].id)]
-    idx_dclines = csv_data["Line"].index[csv_data["Line"].type.isin(csv_data["DCLineType"].id)]
+    idx_lines = csv_data["Line"].index[
+        csv_data["Line"].type.isin(csv_data["LineType"].id)
+    ]
+    idx_dclines = csv_data["Line"].index[
+        csv_data["Line"].type.isin(csv_data["DCLineType"].id)
+    ]
     missing = csv_data["Line"].index.difference(idx_lines.union(idx_dclines))
     if len(missing):
-        raise ValueError("In Line table, the types of these line indices misses in LineType and " +
-                         "DCLineType table: " + str(list(missing)))
+        raise ValueError(
+            "In Line table, the types of these line indices misses in LineType and "
+            + "DCLineType table: "
+            + str(list(missing))
+        )
     if len(idx_lines.intersection(idx_dclines)):
-        raise ValueError("In Line table, the types of these line indices occur in LineType and " +
-                         "DCLineType table: " + str(list(idx_lines.intersection(idx_dclines))))
+        raise ValueError(
+            "In Line table, the types of these line indices occur in LineType and "
+            + "DCLineType table: "
+            + str(list(idx_lines.intersection(idx_dclines)))
+        )
     csv_data["Line*line"] = csv_data["Line"].loc[idx_lines]
     csv_data["Line*dcline"] = csv_data["Line"].loc[idx_dclines]
 
     # copy dicts from net.std_types to dataframes in net with name "std_types|element"
     for key in net.std_types.keys():
-        net["std_types|%s" % key] = pd.DataFrame([], columns=pd.DataFrame(net.std_types[
-            key]).T.columns)
+        net["std_types|%s" % key] = pd.DataFrame(
+            [], columns=pd.DataFrame(net.std_types[key]).T.columns
+        )
 
     # ensure lower case tapside values
-    csv_data["TransformerType"]["tapside"] = csv_data["TransformerType"]["tapside"].str.lower()
-    csv_data["Transformer3WType"]["tapside"] = csv_data["Transformer3WType"]["tapside"].str.lower()
+    csv_data["TransformerType"]["tapside"] = csv_data["TransformerType"][
+        "tapside"
+    ].str.lower()
+    csv_data["Transformer3WType"]["tapside"] = csv_data["Transformer3WType"][
+        "tapside"
+    ].str.lower()
 
 
 def _csv_types_to_pp2(net):
-    """ Moves all DataFrames in net named with "std_types|" to net.std_types as dict and
-        loads type data into element tables. """
+    """Moves all DataFrames in net named with "std_types|" to net.std_types as dict and
+    loads type data into element tables."""
     element_types = ["line", "trafo", "trafo3w"]
     for element_type in element_types:
         # --- copy type data from dataframes like net["LineType*std_types|line"] into net.std_types
         # --- as dict
         tablename = "std_types|" + element_type
         type_table = net[tablename]
-        merged_type_table = merge_dataframes([
-            type_table, pd.DataFrame(net.std_types[element_type]).T], sort_index=False,
-            sort_column=False)
+        merged_type_table = merge_dataframes(
+            [type_table, pd.DataFrame(net.std_types[element_type]).T],
+            sort_index=False,
+            sort_column=False,
+        )
         if element_type == "line":
             _assume_cs_ohl_line_type(merged_type_table)
         data = merged_type_table.to_dict("index")
         pp.create_std_types(net, data, element_type)
 
         # --- load type data into element tables
-        type_columns = net[element_type].columns.intersection(net[tablename].columns)
+        type_columns = net[element_type].columns.intersection(
+            net[tablename].columns
+        )
         uniq_types = net[element_type].std_type.unique()
         for uniq_type in uniq_types:
             this_type_elm = net[element_type].std_type == uniq_type
-            net[element_type].loc[this_type_elm, type_columns] = merged_type_table.loc[
-                uniq_type, type_columns].values.reshape(1, -1).repeat(sum(this_type_elm), axis=0)
+            net[element_type].loc[this_type_elm, type_columns] = (
+                merged_type_table.loc[uniq_type, type_columns]
+                .values.reshape(1, -1)
+                .repeat(sum(this_type_elm), axis=0)
+            )
 
         # --- delete dataframes like net["LineType*std_types|line"]
         del net[tablename]
 
 
 def _assume_cs_ohl_line_type(line_types_df):
-    """ Assumes some known types as cable or overhead lines. """
+    """Assumes some known types as cable or overhead lines."""
     cable_name_parts = ["NA", "NY", "N2XS"]
-    is_cs = np.array([False]*line_types_df.shape[0])
+    is_cs = np.array([False] * line_types_df.shape[0])
     for name_part in cable_name_parts:
         is_cs |= pd.Series(line_types_df.index).str.contains(name_part)
-#    if "type" not line_types_df.columns:
-#        line_types_df["type"] = np.nan
+    #    if "type" not line_types_df.columns:
+    #        line_types_df["type"] = np.nan
     is_null = line_types_df.type.isnull().values
     line_types_df.loc[line_types_df.index[is_null & is_cs], "type"] = "cs"
 
@@ -545,9 +730,9 @@ def _assume_cs_ohl_line_type(line_types_df):
 
 
 def _pp_types_to_csv1(net, export_pp_std_types):
-    """ Ensures that all line, trafo, trafo3w, storage and dcline have a type.
-        Provides DataFrames in net for line, trafo and trafo3w elements considering
-        export_pp_std_types. """
+    """Ensures that all line, trafo, trafo3w, storage and dcline have a type.
+    Provides DataFrames in net for line, trafo and trafo3w elements considering
+    export_pp_std_types."""
 
     # --- add 'std_type' column to net.dcline and net.storage if missing
     for elm in ["dcline"]:
@@ -557,28 +742,73 @@ def _pp_types_to_csv1(net, export_pp_std_types):
                 net[elm]["std_type"] = np.nan
             else:
                 # if 'std_type' does not exist but 'type', here 'type' is renamed into 'std_type'
-                new_index_dict = {(i): (i if i != "type" else "std_type") for i in net[elm].columns}
+                new_index_dict = {
+                    (i): (i if i != "type" else "std_type")
+                    for i in net[elm].columns
+                }
                 net[elm].rename = net[elm].rename(columns=new_index_dict)
 
     # --- add new std_types to line, trafo, trafo3w, storage and dcline tables if missing
     type_params = {
-        "line": ["r_ohm_per_km", "x_ohm_per_km", "c_nf_per_km", "g_us_per_km", "max_i_ka"],
-        "trafo": ["sn_mva", "vn_hv_kv", "vn_lv_kv", "vk_percent", "vkr_percent", "pfe_kw",
-                  "i0_percent", "shift_degree"],
-        "trafo3w": ["sn_hv_mva", "sn_mv_mva", "sn_lv_mva", "vn_hv_kv", "vn_mv_kv", "vn_lv_kv",
-                    "vk_hv_percent", "vk_mv_percent", "vk_lv_percent",
-                    "vkr_hv_percent", "vkr_mv_percent", "vkr_lv_percent",
-                    "pfe_kw", "i0_percent", "shift_mv_degree", "shift_lv_degree"],
-        "dcline": ["p_mw", "loss_percent", "loss_mw", "vm_from_pu", "vm_to_pu"]}
+        "line": [
+            "r_ohm_per_km",
+            "x_ohm_per_km",
+            "c_nf_per_km",
+            "g_us_per_km",
+            "max_i_ka",
+        ],
+        "trafo": [
+            "sn_mva",
+            "vn_hv_kv",
+            "vn_lv_kv",
+            "vk_percent",
+            "vkr_percent",
+            "pfe_kw",
+            "i0_percent",
+            "shift_degree",
+        ],
+        "trafo3w": [
+            "sn_hv_mva",
+            "sn_mv_mva",
+            "sn_lv_mva",
+            "vn_hv_kv",
+            "vn_mv_kv",
+            "vn_lv_kv",
+            "vk_hv_percent",
+            "vk_mv_percent",
+            "vk_lv_percent",
+            "vkr_hv_percent",
+            "vkr_mv_percent",
+            "vkr_lv_percent",
+            "pfe_kw",
+            "i0_percent",
+            "shift_mv_degree",
+            "shift_lv_degree",
+        ],
+        "dcline": [
+            "p_mw",
+            "loss_percent",
+            "loss_mw",
+            "vm_from_pu",
+            "vm_to_pu",
+        ],
+    }
     for elm in type_params.keys():
         elms_without_type = net[elm][pd.isnull(net[elm].std_type)]
-        uni_dupl_dict = get_unique_duplicated_dict(elms_without_type, subset=type_params[elm])
+        uni_dupl_dict = get_unique_duplicated_dict(
+            elms_without_type, subset=type_params[elm]
+        )
         for uni, dupl in uni_dupl_dict.items():
-            new_typename = net[elm].name.loc[uni] + '_type'
-            net[elm].loc[[uni]+dupl, "std_type"] = new_typename
+            new_typename = net[elm].name.loc[uni] + "_type"
+            net[elm].loc[[uni] + dupl, "std_type"] = new_typename
             if elm in ["line", "trafo", "trafo3w"]:
-                pp.create_std_type(net, dict(net[elm].loc[uni, type_params[elm]].T), new_typename,
-                                   element=elm, overwrite=False)
+                pp.create_std_type(
+                    net,
+                    dict(net[elm].loc[uni, type_params[elm]].T),
+                    new_typename,
+                    element=elm,
+                    overwrite=False,
+                )
 
     # --- determine line, trafo and trafo3w typenames to be converted,
     # --- considering export_pp_std_types. changes net.std_types dicts into dataframes
@@ -589,33 +819,52 @@ def _pp_types_to_csv1(net, export_pp_std_types):
             typenames2convert = set(net.std_types[elm].keys())
         else:
             pp_typenames = set(dummy_net.std_types[elm].keys())
-            unused_pp_typenames = pp_typenames - set(net[elm].std_type.unique())
-            typenames2convert = set(net.std_types[elm].keys()) - unused_pp_typenames
-        net.std_types[elm] = pd.DataFrame(net.std_types[elm]).T.loc[list(
-            typenames2convert)].reset_index()
-        net.std_types[elm] = net.std_types[elm].rename(columns={"index": "std_type"})
+            unused_pp_typenames = pp_typenames - set(
+                net[elm].std_type.unique()
+            )
+            typenames2convert = (
+                set(net.std_types[elm].keys()) - unused_pp_typenames
+            )
+        net.std_types[elm] = (
+            pd.DataFrame(net.std_types[elm])
+            .T.loc[list(typenames2convert)]
+            .reset_index()
+        )
+        net.std_types[elm] = net.std_types[elm].rename(
+            columns={"index": "std_type"}
+        )
 
     convert_line_type_acronym(net)
 
 
 def _pp_types_to_csv2(csv_data):
-    """ Sorts Type tables alphabetical and reduces StorageType and DCLineType to unique values.
-        Additionally, upper case tapside values are ensured. """
-    for tablename in csv_tablenames('types'):
-        csv_data[tablename] = csv_data[tablename].sort_values(by=["id"]).reset_index(drop=True)
+    """Sorts Type tables alphabetical and reduces StorageType and DCLineType to unique values.
+    Additionally, upper case tapside values are ensured."""
+    for tablename in csv_tablenames("types"):
+        csv_data[tablename] = (
+            csv_data[tablename].sort_values(by=["id"]).reset_index(drop=True)
+        )
         if tablename in ["DCLineType"]:
-            csv_data[tablename] = csv_data[tablename].loc[~csv_data[tablename]["id"].duplicated()]
-    csv_data["TransformerType"]["tapside"] = csv_data["TransformerType"]["tapside"].str.upper()
-    csv_data["Transformer3WType"]["tapside"] = csv_data["Transformer3WType"]["tapside"].str.upper()
+            csv_data[tablename] = csv_data[tablename].loc[
+                ~csv_data[tablename]["id"].duplicated()
+            ]
+    csv_data["TransformerType"]["tapside"] = csv_data["TransformerType"][
+        "tapside"
+    ].str.upper()
+    csv_data["Transformer3WType"]["tapside"] = csv_data["Transformer3WType"][
+        "tapside"
+    ].str.upper()
 
 
 def _multi_parameter_determination(data):
-    """ Adds columns for parameters which must be calculated with respect to multiple parameters """
+    """Adds columns for parameters which must be calculated with respect to multiple parameters"""
     trafo3w_tablename = "trafo3w" if _is_pp_type(data) else "Transformer3WType"
     if data[trafo3w_tablename].shape[0]:
-        logger.warning("Since there are different Transformer3w models, be aware that there is " +
-                       "an information loss to pandapower and missing information for simbench " +
-                       "csv format.")
+        logger.warning(
+            "Since there are different Transformer3w models, be aware that there is "
+            + "an information loss to pandapower and missing information for simbench "
+            + "csv format."
+        )
     vkr_3w = ["vkr_%sv_percent" % s for s in ["h", "m", "l"]]
     sn_3w = ["sn_%sv_mva" % s for s in ["h", "m", "l"]]
     pCu_3w = ["pCu%sV" % s for s in ["H", "M", "L"]]
@@ -624,52 +873,79 @@ def _multi_parameter_determination(data):
         # switch
         data["switch"]["closed"] = data["switch"]["closed"].astype(int)
         # trafo type
-        data["std_types"]["trafo"]["pCu"] = data["std_types"]["trafo"].vkr_percent * data[
-            "std_types"]["trafo"].sn_mva * 1e3 / 100
-        tapable = (data["std_types"]["trafo"].tap_min != data["std_types"]["trafo"].tap_neutral) | \
-            (data["std_types"]["trafo"].tap_max != data["std_types"]["trafo"].tap_neutral)
+        data["std_types"]["trafo"]["pCu"] = (
+            data["std_types"]["trafo"].vkr_percent
+            * data["std_types"]["trafo"].sn_mva
+            * 1e3
+            / 100
+        )
+        tapable = (
+            data["std_types"]["trafo"].tap_min
+            != data["std_types"]["trafo"].tap_neutral
+        ) | (
+            data["std_types"]["trafo"].tap_max
+            != data["std_types"]["trafo"].tap_neutral
+        )
         data["std_types"]["trafo"]["tapable"] = tapable.astype(int)
         data["std_types"]["trafo"]["tapable"] = tapable.astype(int)
         # trafo3w type
         for vkr, sn, pCu in zip(vkr_3w, sn_3w, pCu_3w):
-            data["std_types"]["trafo3w"][pCu] = data["std_types"]["trafo3w"][vkr] * data[
-                "std_types"]["trafo3w"][sn] * 1e3 / 100
+            data["std_types"]["trafo3w"][pCu] = (
+                data["std_types"]["trafo3w"][vkr]
+                * data["std_types"]["trafo3w"][sn]
+                * 1e3
+                / 100
+            )
     else:
         # switch
         data["Switch"]["cond"] = data["Switch"]["cond"].astype(bool)
         # trafo type
         table = "TransformerType"
-        data[table]["vkr_percent"] = 100 * data[table]["pCu"] / (data[table]["sR"]*1e3)
+        data[table]["vkr_percent"] = (
+            100 * data[table]["pCu"] / (data[table]["sR"] * 1e3)
+        )
         if (data[table]["dVa"] != 0).any():
-            logger.warning("TransformerType parameter 'dVa' is not converted to pandapower.")
+            logger.warning(
+                "TransformerType parameter 'dVa' is not converted to pandapower."
+            )
         if not pd.isnull(data["Transformer"].autoTap).all():
-            logger.debug("Transformer parameter 'autoTap' is not converted to pandapower.")
-        idx_not_tapable = data[table].index[~data[table]["tapable"].astype(bool)]
+            logger.debug(
+                "Transformer parameter 'autoTap' is not converted to pandapower."
+            )
+        idx_not_tapable = data[table].index[
+            ~data[table]["tapable"].astype(bool)
+        ]
         if len(idx_not_tapable):
-            logger.info("tapMin and tapMax are set equal to tapNeutr for all transformers which " +
-                        "are not tabable.")
-            data[table].tapMin.loc[idx_not_tapable] = data[table].tapNeutr.loc[idx_not_tapable]
-            data[table].tapMax.loc[idx_not_tapable] = data[table].tapNeutr.loc[idx_not_tapable]
+            logger.info(
+                "tapMin and tapMax are set equal to tapNeutr for all transformers which "
+                + "are not tabable."
+            )
+            data[table].tapMin.loc[idx_not_tapable] = data[table].tapNeutr.loc[
+                idx_not_tapable
+            ]
+            data[table].tapMax.loc[idx_not_tapable] = data[table].tapNeutr.loc[
+                idx_not_tapable
+            ]
         # trafo3w type
         table = "Transformer3WType"
         for vkr, sR, pCu in zip(vkr_3w, sR_3w, pCu_3w):
-            data[table][vkr] = 100 * data[table][pCu] / (data[table][sR]*1e3)
+            data[table][vkr] = 100 * data[table][pCu] / (data[table][sR] * 1e3)
 
 
 def _convert_elements_and_types(input_data, output_data):
-    """ Converts elements and type data.
-        First, the tables are renamed by x*y where x is the csv_tablename and y the pp element. If
-        it is about a pp type from net.std_types y is std_types|element.
-        Furthermore the tables are split if there are multiple tables of the output format the
-        data must be integrated in.
-        Second, the columns of the tables are renamed by the output column names and the values are
-        multiplied with fixed factors.
-        Third, the bus reference, which is done by names in simbench csv format and by index in
-        pandapower, is translated-
-        Finally, the converted data is copied to the output net dict.
+    """Converts elements and type data.
+    First, the tables are renamed by x*y where x is the csv_tablename and y the pp element. If
+    it is about a pp type from net.std_types y is std_types|element.
+    Furthermore the tables are split if there are multiple tables of the output format the
+    data must be integrated in.
+    Second, the columns of the tables are renamed by the output column names and the values are
+    multiplied with fixed factors.
+    Third, the bus reference, which is done by names in simbench csv format and by index in
+    pandapower, is translated-
+    Finally, the converted data is copied to the output net dict.
 
-        Info: At this point of conversion of pp2csv(), alle type tables are already split. Within
-        csv2pp(), storage and storagetype (same for dcline) are merged into only one table.
+    Info: At this point of conversion of pp2csv(), alle type tables are already split. Within
+    csv2pp(), storage and storagetype (same for dcline) are merged into only one table.
     """
     _rename_and_split_input_tables(input_data)
     # from here, all relevant information are stored in input_data[corr_str]
@@ -681,23 +957,30 @@ def _convert_elements_and_types(input_data, output_data):
 
 
 def _rename_and_split_input_tables(data):
-    """ Splits the tables of ExternalNet, PowerPlant, RES, ext_grid, gen, sgen and name the df
-        according to _csv_table_pp_dataframe_correspondings(). """
+    """Splits the tables of ExternalNet, PowerPlant, RES, ext_grid, gen, sgen and name the df
+    according to _csv_table_pp_dataframe_correspondings()."""
     # --- initilizations
-    split_gen = ["ext_grid", "gen", "sgen"] if _is_pp_type(data) else [
-        "ExternalNet", "PowerPlant", "RES"]
+    split_gen = (
+        ["ext_grid", "gen", "sgen"]
+        if _is_pp_type(data)
+        else ["ExternalNet", "PowerPlant", "RES"]
+    )
     split_gen_col = "phys_type" if _is_pp_type(data) else "calc_type"
     split_Line = [] if _is_pp_type(data) else ["Line"]
     split_ppelm_into_type_and_elm = ["dcline"] if _is_pp_type(data) else []
     input_elm_col = "pp" if _is_pp_type(data) else "csv"
     output_elm_col = "csv" if _is_pp_type(data) else "pp"
-    corr_df = _csv_table_pp_dataframe_correspondings(pd.DataFrame, not _is_pp_type(data))
+    corr_df = _csv_table_pp_dataframe_correspondings(
+        pd.DataFrame, not _is_pp_type(data)
+    )
     corr_df["comb_str"] = corr_df["csv"] + "*" + corr_df["pp"]
 
     # all elements, which need to be converted to multiple output element tables, (dupl) need to be
     # treated specially, thus must be in split lists
     dupl = corr_df[input_elm_col][corr_df[input_elm_col].duplicated()]
-    assert dupl.isin(split_gen+split_Line+split_ppelm_into_type_and_elm).all()
+    assert dupl.isin(
+        split_gen + split_Line + split_ppelm_into_type_and_elm
+    ).all()
 
     # -- start renaming and in case of dupl also splitting
     for idx in corr_df.index:
@@ -707,8 +990,10 @@ def _rename_and_split_input_tables(data):
         corr_str = corr_df.loc[idx, "comb_str"]
 
         if input_elm in split_gen:
-            data[corr_str] = data[input_elm][data[input_elm][split_gen_col] == _get_split_gen_val(
-                output_elm)]
+            data[corr_str] = data[input_elm][
+                data[input_elm][split_gen_col]
+                == _get_split_gen_val(output_elm)
+            ]
         elif input_elm in split_Line:
             continue  # already done in _csv_types_to_pp1()
         elif input_elm in split_ppelm_into_type_and_elm:
@@ -722,14 +1007,22 @@ def _rename_and_split_input_tables(data):
                 if input_elm in data.keys():
                     data[corr_str] = data.pop(input_elm)
                 elif _is_pp_type(data) and "std_types" in input_elm:
-                    data[corr_str] = pd.DataFrame(data["std_types"][input_elm[10:]])
+                    data[corr_str] = pd.DataFrame(
+                        data["std_types"][input_elm[10:]]
+                    )
                 else:
                     data[corr_str] = pd.DataFrame()
 
 
 def _get_split_gen_val(element):
     to_csv = {x: x for x in ["ExternalNet", "PowerPlant", "RES"]}
-    to_pp = {"ext_grid": "vavm", "gen": "pvm", "sgen": "pq", "ward": "Ward", "xward": "xWard"}
+    to_pp = {
+        "ext_grid": "vavm",
+        "gen": "pvm",
+        "sgen": "pq",
+        "ward": "Ward",
+        "xward": "xWard",
+    }
     if element in to_csv.keys():
         return to_csv[element]
     else:
@@ -737,40 +1030,57 @@ def _get_split_gen_val(element):
 
 
 def _rename_and_multiply_columns(data):
-    """ Renames the columns of all dataframes as needed in output data. """
-    to_rename_and_multiply_tuples = _get_parameters_to_rename_and_multiply(True)
+    """Renames the columns of all dataframes as needed in output data."""
+    to_rename_and_multiply_tuples = _get_parameters_to_rename_and_multiply(
+        True
+    )
     for corr_str, tuples in to_rename_and_multiply_tuples.items():
         # --- remove "type" from data if "std_type" exists too
-        if "std_type" in data[corr_str].columns and "type" in data[corr_str].columns and \
-           corr_str != "LineType*std_types|line":
+        if (
+            "std_type" in data[corr_str].columns
+            and "type" in data[corr_str].columns
+            and corr_str != "LineType*std_types|line"
+        ):
             del data[corr_str]["type"]
         # --- rename
-        ordered_tuples = [(x, y, z) if not _is_pp_type(data) else (y, x, z) for x, y, z in tuples]
+        ordered_tuples = [
+            (x, y, z) if not _is_pp_type(data) else (y, x, z)
+            for x, y, z in tuples
+        ]
         columns = data[corr_str].columns
         nan_columns = data[corr_str].columns[data[corr_str].isnull().all()]
         to_rename_dict = dict()
         for x, y, _ in ordered_tuples:
-            if y not in columns:  # do not rename if the column name already exists
+            if (
+                y not in columns
+            ):  # do not rename if the column name already exists
                 to_rename_dict[x] = y
-            elif y in nan_columns:  # rename if the column exists with only nan values
+            elif (
+                y in nan_columns
+            ):  # rename if the column exists with only nan values
                 to_rename_dict[x] = y
                 del data[corr_str][y]
         data[corr_str] = data[corr_str].rename(columns=to_rename_dict)
 
         # --- multiply
-        to_multiply = pd.DataFrame([(y, m) for _, y, m in ordered_tuples if not pd.isnull(m) and
-                                    y in data[corr_str].columns])
+        to_multiply = pd.DataFrame(
+            [
+                (y, m)
+                for _, y, m in ordered_tuples
+                if not pd.isnull(m) and y in data[corr_str].columns
+            ]
+        )
         if to_multiply.shape[0]:
             col = list(to_multiply.iloc[:, 0])
             factors = to_multiply.iloc[:, 1].values
             if _is_pp_type(data):
-                factors = 1/factors
+                factors = 1 / factors
             data[corr_str].loc[:, col] *= factors
 
 
 def _get_parameters_to_rename_and_multiply(drop_bus_geodata):
-    """ Returns a dict of tuples and a dict of dataframes where csv column names are assigned to
-    pandapower columns names which differ. """
+    """Returns a dict of tuples and a dict of dataframes where csv column names are assigned to
+    pandapower columns names which differ."""
     # --- create dummy_net to get pp columns
     dummy_net = pp.create_empty_network()
     _extend_pandapower_net_columns(dummy_net)
@@ -782,15 +1092,21 @@ def _get_parameters_to_rename_and_multiply(drop_bus_geodata):
         dummy_net[elm]["va_degree"] = np.nan
 
     # --- get corresponding tables and dataframes
-    corr_strings = _csv_table_pp_dataframe_correspondings(str, drop_bus_geodata)
-    csv_tablenames_, pp_dfnames = _csv_table_pp_dataframe_correspondings(list, drop_bus_geodata)
+    corr_strings = _csv_table_pp_dataframe_correspondings(
+        str, drop_bus_geodata
+    )
+    csv_tablenames_, pp_dfnames = _csv_table_pp_dataframe_correspondings(
+        list, drop_bus_geodata
+    )
 
     # --- initialize tuples_dict
     tuples_dict = dict.fromkeys(corr_strings, [("id", "name", None)])
-    tuples_dict['NodePFResult*res_bus'] = []
+    tuples_dict["NodePFResult*res_bus"] = []
 
     # --- determine tuples_dict
-    for corr_str, csv_tablename, pp_dfname in zip(corr_strings, csv_tablenames_, pp_dfnames):
+    for corr_str, csv_tablename, pp_dfname in zip(
+        corr_strings, csv_tablenames_, pp_dfnames
+    ):
         # adapt tuples_dict initialization of Type tables
         if "Type" in csv_tablename:
             tuples_dict[corr_str] = [("id", "std_type", None)]
@@ -798,109 +1114,202 @@ def _get_parameters_to_rename_and_multiply(drop_bus_geodata):
         corr_col_tuples = _csv_pp_column_correspondings(csv_tablename)
         # get csv and pp columns
         csv_columns = get_columns(csv_tablename)
-        pp_columns = dummy_net[pp_dfname].columns if "std_types" not in pp_dfname else \
-            pd.DataFrame(dummy_net["std_types"][pp_dfname[10:]]).T.columns
+        pp_columns = (
+            dummy_net[pp_dfname].columns
+            if "std_types" not in pp_dfname
+            else pd.DataFrame(dummy_net["std_types"][pp_dfname[10:]]).T.columns
+        )
         # determine tuples_dict: all tuples which are in columns of both, csv and pp
         tuples_dict[corr_str] = tuples_dict[corr_str] + [
-            corr_col_tuple for corr_col_tuple in corr_col_tuples if corr_col_tuple[0] in
-            csv_columns and corr_col_tuple[1] in pp_columns]
+            corr_col_tuple
+            for corr_col_tuple in corr_col_tuples
+            if corr_col_tuple[0] in csv_columns
+            and corr_col_tuple[1] in pp_columns
+        ]
         # unused:
-#    dfs_dict = {key: pd.DataFrame(data, columns=["csv_col", "pp_col", "factor"]) for key, data in
-#                tuples_dict.items()}
+    #    dfs_dict = {key: pd.DataFrame(data, columns=["csv_col", "pp_col", "factor"]) for key, data in
+    #                tuples_dict.items()}
     return tuples_dict
 
 
 def _replace_name_index(data):
-    """ While the simbench csv format assigns connected nodes via names, pandapower assigns via
-        indices. This function replaces the assignment of the input data. """
+    """While the simbench csv format assigns connected nodes via names, pandapower assigns via
+    indices. This function replaces the assignment of the input data."""
     node_names = {"node", "nodeA", "nodeB", "nodeHV", "nodeMV", "nodeLV"}
     bus_names = {"bus", "from_bus", "to_bus", "hv_bus", "mv_bus", "lv_bus"}
     corr_strings = _csv_table_pp_dataframe_correspondings(str, True)
-    corr_strings.remove("Measurement*measurement")  # already done in convert_measurement()
+    corr_strings.remove(
+        "Measurement*measurement"
+    )  # already done in convert_measurement()
 
     if _is_pp_type(data):
         for corr_str in corr_strings:
             for col in node_names & set(data[corr_str].columns):
-                data[corr_str][col] = data["Node*bus"]["id"].loc[data[corr_str][col]].values
+                data[corr_str][col] = (
+                    data["Node*bus"]["id"].loc[data[corr_str][col]].values
+                )
     else:
         for corr_str in corr_strings:
             for col in bus_names & set(data[corr_str].columns):
                 # each bus name must be unique
-                data[corr_str][col] = data["Node*bus"].index[idx_in_2nd_array(data[
-                    corr_str][col].values, data["Node*bus"]["name"].values)]
+                data[corr_str][col] = data["Node*bus"].index[
+                    idx_in_2nd_array(
+                        data[corr_str][col].values,
+                        data["Node*bus"]["name"].values,
+                    )
+                ]
 
 
 def _merge_dcline_and_storage_type_and_element_data(input_data):
-    """ Merges dcline and storage data from Type tables into element tables. """
+    """Merges dcline and storage data from Type tables into element tables."""
     for tablename in ["DCLine"]:
         elm = tablename.lower()
-        corr_str_type = tablename+"Type*"+elm
-        tablename = tablename if "DC" not in tablename else tablename.replace("DC", "")
-        corr_str = tablename+"*"+elm
-        idx_type = input_data[corr_str_type]["std_type"].index[idx_in_2nd_array(
-            input_data[corr_str].std_type.values, input_data[corr_str_type]["std_type"].values)]
-        Type_col_except_std_type = input_data[corr_str_type].columns.difference(["std_type"])
+        corr_str_type = tablename + "Type*" + elm
+        tablename = (
+            tablename if "DC" not in tablename else tablename.replace("DC", "")
+        )
+        corr_str = tablename + "*" + elm
+        idx_type = input_data[corr_str_type]["std_type"].index[
+            idx_in_2nd_array(
+                input_data[corr_str].std_type.values,
+                input_data[corr_str_type]["std_type"].values,
+            )
+        ]
+        Type_col_except_std_type = input_data[
+            corr_str_type
+        ].columns.difference(["std_type"])
         if version.parse(pd.__version__) >= version.parse("0.21.0"):
             input_data[corr_str] = input_data[corr_str].reindex(
-                columns=input_data[corr_str].columns.union(Type_col_except_std_type))
+                columns=input_data[corr_str].columns.union(
+                    Type_col_except_std_type
+                )
+            )
         else:
             input_data[corr_str] = input_data[corr_str].reindex_axis(
-                input_data[corr_str].columns.union(Type_col_except_std_type), axis=1)
-        input_data[corr_str].loc[:, Type_col_except_std_type] = input_data[corr_str_type].loc[
-            idx_type, Type_col_except_std_type].values
+                input_data[corr_str].columns.union(Type_col_except_std_type),
+                axis=1,
+            )
+        input_data[corr_str].loc[:, Type_col_except_std_type] = (
+            input_data[corr_str_type]
+            .loc[idx_type, Type_col_except_std_type]
+            .values
+        )
         input_data[corr_str_type] = input_data[corr_str_type].iloc[0:0]
 
 
 def _copy_data(input_data, output_data):
-    """ Copies the data from output_data[corr_strings] into input_data[element_table]. This function
-        handles that some corr_strings are not in output_data.keys() and copies all columns which
-        exists in both, output_data[corr_strings] and input_data[element_table]. """
+    """Copies the data from output_data[corr_strings] into input_data[element_table]. This function
+    handles that some corr_strings are not in output_data.keys() and copies all columns which
+    exists in both, output_data[corr_strings] and input_data[element_table]."""
     out_is_pp = _is_pp_type(output_data)
     corr_strings = _csv_table_pp_dataframe_correspondings(str, out_is_pp)
-    output_names = _csv_table_pp_dataframe_correspondings(list, out_is_pp)[int(out_is_pp)]
+    output_names = _csv_table_pp_dataframe_correspondings(list, out_is_pp)[
+        int(out_is_pp)
+    ]
 
     for corr_str, output_name in zip(corr_strings, output_names):
         if corr_str in input_data.keys() and input_data[corr_str].shape[0]:
             cols_to_copy = list(
-                set(output_data[output_name].columns) &
-                set(input_data[corr_str].columns[~input_data[corr_str].isnull().all()]))
+                set(output_data[output_name].columns)
+                & set(
+                    input_data[corr_str].columns[
+                        ~input_data[corr_str].isnull().all()
+                    ]
+                )
+            )
             if pd.__version__.startswith("2.2."):
                 with warnings.catch_warnings():
-                    warnings.simplefilter(action='ignore', category=FutureWarning)
-                    output_data[output_name] = pd.concat([output_data[output_name], input_data[
-                        corr_str][cols_to_copy]], ignore_index=True, sort=False).reindex(
-                        columns=output_data[output_name].columns)
+                    warnings.simplefilter(
+                        action="ignore", category=FutureWarning
+                    )
+                    output_data[output_name] = pd.concat(
+                        [
+                            output_data[output_name],
+                            input_data[corr_str][cols_to_copy],
+                        ],
+                        ignore_index=True,
+                        sort=False,
+                    ).reindex(columns=output_data[output_name].columns)
             elif version.parse(pd.__version__) >= version.parse("0.23.0"):
-                output_data[output_name] = pd.concat([output_data[output_name], input_data[
-                    corr_str][cols_to_copy]], ignore_index=True, sort=False).reindex(
-                    columns=output_data[output_name].columns)
+                output_data[output_name] = pd.concat(
+                    [
+                        output_data[output_name],
+                        input_data[corr_str][cols_to_copy],
+                    ],
+                    ignore_index=True,
+                    sort=False,
+                ).reindex(columns=output_data[output_name].columns)
             elif version.parse(pd.__version__) >= version.parse("0.21.0"):
-                output_data[output_name] = pd.concat([output_data[output_name], input_data[
-                    corr_str][cols_to_copy]], ignore_index=True).reindex(columns=output_data[
-                        output_name].columns)
+                output_data[output_name] = pd.concat(
+                    [
+                        output_data[output_name],
+                        input_data[corr_str][cols_to_copy],
+                    ],
+                    ignore_index=True,
+                ).reindex(columns=output_data[output_name].columns)
             else:
-                output_data[output_name] = pd.concat([output_data[output_name], input_data[
-                    corr_str][cols_to_copy]], ignore_index=True).reindex_axis(output_data[
-                        output_name].columns, axis=1)
+                output_data[output_name] = pd.concat(
+                    [
+                        output_data[output_name],
+                        input_data[corr_str][cols_to_copy],
+                    ],
+                    ignore_index=True,
+                ).reindex_axis(output_data[output_name].columns, axis=1)
             if "std_types" in corr_str and out_is_pp:
-                output_data[output_name].index = input_data[corr_str]["std_type"]
+                output_data[output_name].index = input_data[corr_str][
+                    "std_type"
+                ]
             _inscribe_fix_values(output_data, output_name)
 
 
 def _inscribe_fix_values(output_data, output_name):
-    """ Writes fix values (which are not given in the input_data format) given in tuples into
-        output table columns. """
-    if _is_pp_type(output_data):
+    """Writes fix values (which are not given in the input_data format) given in tuples into
+    output table columns."""
+    if _is_pp_type(output_data) and version.parse(
+        pp.__version__
+    ) >= version.parse("3.2.0"):
         fix_values_tuples = [
-            ("in_service", True), ("scaling", 1.), ("parallel", 1), ("g_us_per_km", 0.), ("df", 1.),
-            ("tap_step_degree", 0.), ("tap_phase_shifter", False), ("const_i_percent", 0.),
-            ("const_z_percent", 0.), ("min_e_mwh", 0.), ("slack", False), ("z_ohm", 0.)]
+            ("in_service", True),
+            ("scaling", 1.0),
+            ("parallel", 1),
+            ("g_us_per_km", 0.0),
+            ("df", 1.0),
+            ("tap_step_degree", 0.0),
+            ("tap_phase_shifter", False),
+            ("const_i_p_percent", 0.0),
+            ("const_z_p_percent", 0.0),
+            ("const_i_q_percent", 0.0),
+            ("const_z_q_percent", 0.0),
+            ("min_e_mwh", 0.0),
+            ("slack", False),
+            ("z_ohm", 0.0),
+        ]
+    elif _is_pp_type(output_data):
+        fix_values_tuples = [
+            ("in_service", True),
+            ("scaling", 1.0),
+            ("parallel", 1),
+            ("g_us_per_km", 0.0),
+            ("df", 1.0),
+            ("tap_step_degree", 0.0),
+            ("tap_phase_shifter", False),
+            ("const_i_percent", 0.0),
+            ("const_z_percent", 0.0),
+            ("min_e_mwh", 0.0),
+            ("slack", False),
+            ("z_ohm", 0.0),
+        ]
     else:
-        fix_values_tuples = [("dVa", 0.), ("dVaHV", 0.), ("dVaMV", 0.), ("dVaLV", 0.)]
+        fix_values_tuples = [
+            ("dVa", 0.0),
+            ("dVaHV", 0.0),
+            ("dVaMV", 0.0),
+            ("dVaLV", 0.0),
+        ]
     for fxt in fix_values_tuples:
         if fxt[0] in output_data[output_name].columns:
             output_data[output_name][fxt[0]] = fxt[1]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass
