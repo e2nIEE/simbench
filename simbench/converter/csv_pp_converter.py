@@ -1206,7 +1206,6 @@ def _copy_data(input_data, output_data):
     output_names = _csv_table_pp_dataframe_correspondings(list, out_is_pp)[
         int(out_is_pp)
     ]
-
     for corr_str, output_name in zip(corr_strings, output_names):
         if corr_str in input_data.keys() and input_data[corr_str].shape[0]:
             cols_to_copy = list(
@@ -1217,7 +1216,7 @@ def _copy_data(input_data, output_data):
                     ]
                 )
             )
-            if pd.__version__.startswith("2.2."):
+            if version.parse(pd.__version__) >= version.parse("2.2.0"):
                 with warnings.catch_warnings():
                     warnings.simplefilter(
                         action="ignore", category=FutureWarning
