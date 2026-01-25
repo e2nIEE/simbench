@@ -15,6 +15,7 @@ from copy import deepcopy
 from packaging import version
 import pandapower as pp
 from pandapower.plotting import create_generic_coordinates
+from pandapower.diagnostic.diagnostic_functions import DeviationFromStdType
 import warnings
 
 try:
@@ -312,7 +313,8 @@ def pp2csv_data(
     if drop_inactive_elements:
         # attention: trafo3ws are not considered in current version of drop_inactive_elements()
         pp.drop_inactive_elements(net, respect_switches=False)
-    dev_from_std = pp.deviation_from_std_type(net)
+    dev_from_std_cls = DeviationFromStdType()
+    dev_from_std = dev_from_std_cls.diagnostic(net)
     if dev_from_std:
         logger.warning(
             "There are deviations from standard types in elements: "
