@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2025 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -347,7 +347,7 @@ def pp2csv_data(
         )
 
     # further preparation
-    provide_subnet_col(net)
+    provide_subnet_col(net)  # TODO: 4 lines and 1 dc line with diffrent subnet
     provide_voltLvl_col(net)
     provide_substation_cols(net)
     convert_node_type(net)
