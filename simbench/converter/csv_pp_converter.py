@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2025 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2026 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -14,6 +14,7 @@ import numpy as np
 from copy import deepcopy
 from packaging import version
 import pandapower as pp
+from pandapower.diagnostic.diagnostic_functions import DeviationFromStdType
 from pandapower.plotting import create_generic_coordinates
 import warnings
 
@@ -22,15 +23,27 @@ try:
 except ImportError:
     import logging
 
-from simbench.converter.auxiliary import *
-from simbench.converter.format_information import *
+from simbench.converter.auxiliary import (
+    reindex_dict_dataframes,
+    idx_in_2nd_array,
+    avoid_duplicates_in_column,
+    get_unique_duplicated_dict,
+    ensure_iterability,
+    merge_dataframes,
+    ensure_full_column_data_existence,
+)
 from simbench.converter.format_information import (
     _correct_calc_type,
     _csv_table_pp_dataframe_correspondings,
     _csv_pp_column_correspondings,
+    csv_tablenames,
+    get_columns,
 )
-from simbench.converter.read_and_write import *
-from simbench.converter.read_and_write import _init_csv_tables
+from simbench.converter.read_and_write import (
+    _init_csv_tables,
+    read_csv_data,
+    write2csv,
+)
 from simbench.converter.pp_net_manipulation import (
     _extend_pandapower_net_columns,
     _add_dspf_calc_type_and_phys_type_columns,
@@ -41,8 +54,15 @@ from simbench.converter.pp_net_manipulation import (
     _add_coordID,
     _set_vm_setpoint_to_trafos,
     _set_dependency_table_parameters,
+    ensure_bus_index_columns_as_int,
+    convert_parallel_branches,
+    merge_busbar_coordinates,
+    move_slack_gens_to_ext_grid,
+    provide_subnet_col,
+    provide_voltLvl_col,
+    provide_substation_cols,
+    pp_profile_names,
 )
-from simbench.converter.csv_data_manipulation import *
 from simbench.converter.csv_data_manipulation import (
     _extend_coordinates_to_node_shape,
     _sort_switch_nodes_and_prepare_element_and_et,
@@ -51,7 +71,6 @@ from simbench.converter.csv_data_manipulation import (
     _ensure_safe_csv_ids,
     _correct_autoTapSide_of_nonTapTrafos,
 )
-from simbench.converter.pp_net_manipulation import *
 
 logger = logging.getLogger(__name__)
 
@@ -312,7 +331,7 @@ def pp2csv_data(
     if drop_inactive_elements:
         # attention: trafo3ws are not considered in current version of drop_inactive_elements()
         pp.drop_inactive_elements(net, respect_switches=False)
-    dev_from_std = pp.deviation_from_std_type(net)
+    dev_from_std = DeviationFromStdType().diagnostic(net)
     if dev_from_std:
         logger.warning(
             "There are deviations from standard types in elements: "
