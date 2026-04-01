@@ -214,7 +214,7 @@ def convert_parallel_branches(
                     sw_to_append = net.switch.loc[
                         (net.switch.element == par)
                         & (net.switch.et == element[0])
-                    ]  # does not work for trafo3w
+                    ].copy()  # does not work for trafo3w
                     sw_to_append["element"] = max_idx + 1 + i
                     sw_to_append.loc[:, "name"] = (
                         sw_to_append["name"] + "_" + str(num_par[i])
