@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2025 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2026 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -260,6 +260,10 @@ def test_example_simple():
 
     # add assumptions during converting to fit later
     net.ext_grid.controllable = True
+    net.trafo.oltc = True
+    net.sgen.controllable = True
+    net.sgen.reactive_capability_curve = True
+    net.gen.reactive_capability_curve = True
 
     # --- fix scaling
     net.load["scaling"] = 1.0

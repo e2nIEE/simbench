@@ -103,6 +103,8 @@ def _extend_pandapower_net_columns(net):
         "autoTapSide",
         "autoTapSetp",
         "substation",
+        "vector_group",
+        "oltc",
     ] + add_columns["trafo"]
     add_columns["trafo3w"] = [
         "max_loading_percent",
@@ -214,7 +216,9 @@ def convert_parallel_branches(
                         & (net.switch.et == element[0])
                     ]  # does not work for trafo3w
                     sw_to_append["element"] = max_idx + 1 + i
-                    sw_to_append["name"] += "_" + str(num_par[i])
+                    sw_to_append.loc[:, "name"] = (
+                        sw_to_append["name"] + "_" + str(num_par[i])
+                    )
                     max_sw_idx = net.switch.index.max()
                     net["switch"] = pd.concat(
                         [
