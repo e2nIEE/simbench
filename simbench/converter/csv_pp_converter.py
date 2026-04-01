@@ -18,10 +18,7 @@ from pandapower.diagnostic.diagnostic_functions import DeviationFromStdType
 from pandapower.plotting import create_generic_coordinates
 import warnings
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 from simbench.converter.auxiliary import (
     reindex_dict_dataframes,

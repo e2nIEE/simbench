@@ -11,10 +11,7 @@ from pandapower.auxiliary import _preserve_dtypes
 from simbench.converter import replace_branch_switches, create_branch_switches, \
     repl_nans_in_obj_cols_to_empty_str
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 logger = logging.getLogger(__name__)
 

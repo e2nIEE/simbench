@@ -16,10 +16,7 @@ from simbench import sb_dir
 import simbench as sb
 from simbench.networks.extract_simbench_grids_from_csv import \
     _get_extracted_csv_data_from_dict
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 logger = logging.getLogger(__name__)
 
