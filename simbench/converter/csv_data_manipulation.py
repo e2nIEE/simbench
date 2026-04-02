@@ -5,10 +5,7 @@
 import pandas as pd
 from copy import deepcopy
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 from simbench.converter.auxiliary import (
     idx_in_2nd_array,

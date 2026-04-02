@@ -10,10 +10,7 @@ from pandapower.control import ConstControl
 
 from simbench import csv_tablenames, idx_in_2nd_array, merge_dataframes
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 logger = logging.getLogger(__name__)
 

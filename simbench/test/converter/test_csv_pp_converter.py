@@ -26,10 +26,7 @@ from simbench.converter import (
     repl_nans_in_obj_cols_to_empty_str,
 )
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 logger = logging.getLogger(__name__)
 

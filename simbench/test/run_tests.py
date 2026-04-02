@@ -9,10 +9,7 @@ import pytest
 
 from simbench import sb_dir
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 test_dir = os.path.abspath(os.path.join(sb_dir, "test"))
 
 

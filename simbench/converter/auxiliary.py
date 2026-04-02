@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 from packaging import version
-from pandapower import compare_arrays
-
 try:
-    import pandaplan.core.pplog as logging
+    from pandapower.toolbox.comparison import compare_arrays
 except ImportError:
-    import logging
+    from pandapower import compare_arrays
+
+import logging
 
 logger = logging.getLogger(__name__)
 

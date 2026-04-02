@@ -15,10 +15,7 @@ from simbench.networks.loadcases import filter_loadcases
 from simbench import csv_data2pp, read_csv_data, csv_tablenames, idx_in_2nd_array, \
     ensure_iterability, pp_profile_names
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 logger = logging.getLogger(__name__)
 

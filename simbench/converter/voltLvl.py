@@ -4,7 +4,10 @@
 
 import numpy as np
 from pandas import Series
-from pandapower import element_bus_tuples, pp_elements
+try:
+    from pandapower.toolbox.element_selection import element_bus_tuples, pp_elements
+except ImportError:
+    from pandapower import element_bus_tuples, pp_elements
 
 __author__ = "smeinecke"
 

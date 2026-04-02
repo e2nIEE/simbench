@@ -6,10 +6,7 @@ import numpy as np
 import pandas as pd
 import os
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 from simbench.converter.auxiliary import merge_dataframes
 from simbench.converter.format_information import get_columns, csv_tablenames, get_dtypes
