@@ -26,6 +26,13 @@ from simbench.converter import (
     repl_nans_in_obj_cols_to_empty_str,
 )
 
+try:
+    from pandapower.toolbox.comparison import dataframes_equal, nets_equal
+    from pandapower.toolbox.grid_modification import drop_buses
+except ImportError:
+    from pandapower import dataframes_equal, drop_buses, nets_equal
+
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -127,8 +134,8 @@ def test_convert_to_parallel_branches():
     convert_parallel_branches(
         net2, multiple_entries=False, elm_to_convert=["line"]
     )
-    assert pp.dataframes_equal(net2.line, net1.line)
-    assert pp.dataframes_equal(net2.trafo, net.trafo)
+    assert dataframes_equal(net2.line, net1.line)
+    assert dataframes_equal(net2.trafo, net.trafo)
 
     # only exclude "max_loading_percent"
     convert_parallel_branches(
@@ -233,7 +240,7 @@ def test_test_network():
                 if version.parse(pp.__version__) <= version.parse("2.7.0")
                 else dict()
             )
-            eq = pp.dataframes_equal(
+            eq = dataframes_equal(
                 csv_orig[tablename], csv_exported[tablename], **params
             )
             if not eq:
@@ -320,7 +327,7 @@ def test_example_simple():
     # --- adjust net appearance / define what should be compared
     pp_is_27lower = version.parse(pp.__version__) <= version.parse("2.7.0")
 
-    pp.drop_buses(net, [to_drop])
+    drop_buses(net, [to_drop])
     if "power_station_trafo" in net.gen.columns:
         assert net.gen["power_station_trafo"].isnull().all()
         del net.gen["power_station_trafo"]
@@ -375,7 +382,7 @@ def test_example_simple():
                 )
             else:
                 name_selection.append(elm)
-        eq = pp.nets_equal(
+        eq = nets_equal(
             net,
             net_from_csv_data,
             name_selection=name_selection,
@@ -391,7 +398,7 @@ def test_example_simple():
         del net["std_types"]
         del net_from_csv_data["std_types"]
 
-        eq = pp.nets_equal(net, net_from_csv_data, tol=1e-7)
+        eq = nets_equal(net, net_from_csv_data, tol=1e-7)
     assert eq
 
 
