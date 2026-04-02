@@ -33,7 +33,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "pandapower>=3.0.0",
+    "pandapower>=3.4.0",
     "lxml>=6.0"
     ]
 keywords = [
