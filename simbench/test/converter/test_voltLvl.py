@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2026 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -22,12 +22,24 @@ def test_convert_voltlvl_names():
 def test_voltlvl_idx():
     net = pn.example_multivoltage()
     # add measurements
-    pp.create_measurement(net, "v", "bus", 1.03, 0.3, net.bus.index[7])  # 380 kV
-    pp.create_measurement(net, "v", "bus", 1.03, 0.3, net.bus.index[40])  # 10 kV
-    pp.create_measurement(net, "i", "trafo", 0.23, 0.03, net.trafo.index[-1], "hv")  # 10 kV
-    pp.create_measurement(net, "p", "trafo", 0.33, 0.03, net.trafo.index[0], "lv")  # 110 kV
-    pp.create_measurement(net, "i", "line", 0.23, 0.03, net.line.index[-1], "to")  # 0.4 kV
-    pp.create_measurement(net, "q", "line", 0.33, 0.03, net.line.index[0], "from")  # 110 kV
+    pp.create_measurement(
+        net, "v", "bus", 1.03, 0.3, net.bus.index[7]
+    )  # 380 kV
+    pp.create_measurement(
+        net, "v", "bus", 1.03, 0.3, net.bus.index[40]
+    )  # 10 kV
+    pp.create_measurement(
+        net, "i", "trafo", 0.23, 0.03, net.trafo.index[-1], "hv"
+    )  # 10 kV
+    pp.create_measurement(
+        net, "p", "trafo", 0.33, 0.03, net.trafo.index[0], "lv"
+    )  # 110 kV
+    pp.create_measurement(
+        net, "i", "line", 0.23, 0.03, net.line.index[-1], "to"
+    )  # 0.4 kV
+    pp.create_measurement(
+        net, "q", "line", 0.33, 0.03, net.line.index[0], "from"
+    )  # 110 kV
 
     # checking voltlvl_idx()
     hv_and_mv_buses = list(range(16, 45))
@@ -38,15 +50,25 @@ def test_voltlvl_idx():
     mv_loads = list(range(5, 13))
     assert mv_loads == sb.voltlvl_idx(net, "load", "MV")
     hvmv_trafo3ws = [0]
-    assert hvmv_trafo3ws == sb.voltlvl_idx(net, "trafo3w", "HV", branch_bus="hv_bus")
-    assert hvmv_trafo3ws == sb.voltlvl_idx(net, "trafo3w", "MV", branch_bus="mv_bus")
-    assert hvmv_trafo3ws == sb.voltlvl_idx(net, "trafo3w", "MV", branch_bus="lv_bus")
+    assert hvmv_trafo3ws == sb.voltlvl_idx(
+        net, "trafo3w", "HV", branch_bus="hv_bus"
+    )
+    assert hvmv_trafo3ws == sb.voltlvl_idx(
+        net, "trafo3w", "MV", branch_bus="mv_bus"
+    )
+    assert hvmv_trafo3ws == sb.voltlvl_idx(
+        net, "trafo3w", "MV", branch_bus="lv_bus"
+    )
     ehvhv_trafos = [0]
     assert ehvhv_trafos == sb.voltlvl_idx(net, "trafo", 1, branch_bus="hv_bus")
     assert ehvhv_trafos == sb.voltlvl_idx(net, "trafo", 3, branch_bus="lv_bus")
     ehvhv_and_hvmv_trafos = [0]
-    assert ehvhv_and_hvmv_trafos == sb.voltlvl_idx(net, "trafo", 2, branch_bus="hv_bus")
-    assert ehvhv_and_hvmv_trafos == sb.voltlvl_idx(net, "trafo", 4, branch_bus="lv_bus")
+    assert ehvhv_and_hvmv_trafos == sb.voltlvl_idx(
+        net, "trafo", 2, branch_bus="hv_bus"
+    )
+    assert ehvhv_and_hvmv_trafos == sb.voltlvl_idx(
+        net, "trafo", 4, branch_bus="lv_bus"
+    )
     hvmv_trafos = []
     assert hvmv_trafos == sb.voltlvl_idx(net, "trafo", 5, branch_bus="lv_bus")
     mvlv_trafos = [1]
@@ -61,7 +83,7 @@ def test_voltlvl_idx():
     assert m3 == [3, 5]
     assert m5 == [1, 2]
     assert m7 == [4]
-    assert len(net.measurement.index) == len(m1+m3+m5+m7)
+    assert len(net.measurement.index) == len(m1 + m3 + m5 + m7)
     assert set(net.measurement.index) == set(m1) | set(m3) | set(m5) | set(m7)
 
 
@@ -84,7 +106,9 @@ def test_all_voltlvl_idx():
     lvl_dicts = sb.all_voltlvl_idx(net, elms=elms)
     assert list(lvl_dicts.keys()) == elms
 
-    lvl_dicts = sb.all_voltlvl_idx(net, elms=["bus", "trafo3w"], include_empty_elms_dicts=True)
+    lvl_dicts = sb.all_voltlvl_idx(
+        net, elms=["bus", "trafo3w"], include_empty_elms_dicts=True
+    )
     assert not bool(net.trafo3w.shape[0])
     assert "trafo3w" in lvl_dicts.keys()
 

@@ -1,8 +1,11 @@
 Change Log
 =============
 
-[x.x.x] - 20xx-xx-xx
+[1.6.2] - 2026-04-02
 ----------------------
+- [ADDED] python 3.13 support
+- [CHANGED] drop python 3.9 support
+- [ADDED] new load parameters at the pandapower network creation to fit to pandapower 3.2
 - [CHANGED] extended the list of parameters (new in pandapower) that would be casted from NaN to True (without adaption in the converter function `csv_csv_data2pp()`) but should be False by default
 
 [1.6.1] - 2024-04-13
