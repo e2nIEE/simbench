@@ -17,6 +17,12 @@ import simbench as sb
 from simbench.networks.extract_simbench_grids_from_csv import (
     _get_extracted_csv_data_from_dict,
 )
+
+try:
+    from pandapower.toolbox.comparison import dataframes_equal
+except ImportError:
+    from pandapower import dataframes_equal
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -410,9 +416,9 @@ def test_generate_no_sw_variant():
         net.bus.name.values
         == net_orig.bus.name.loc[net.bus.index.difference([1, 6])].values
     ).all()
-    assert pp.dataframes_equal(net.line, net_orig.line)
-    assert pp.dataframes_equal(net.trafo, net_orig.trafo)
-    assert pp.dataframes_equal(
+    assert dataframes_equal(net.line, net_orig.line)
+    assert dataframes_equal(net.trafo, net_orig.trafo)
+    assert dataframes_equal(
         net.switch, net_orig.switch.loc[[6, 9, 10, 11, 13, 14]]
     )
 

@@ -18,6 +18,11 @@ from pandapower.diagnostic.diagnostic_functions import DeviationFromStdType
 from pandapower.plotting import create_generic_coordinates
 import warnings
 
+try:
+    from pandapower.toolbox.grid_modification import drop_inactive_elements as pp_drop_inactive_elements
+except ImportError:
+    from pandapower import drop_inactive_elements as pp_drop_inactive_elements
+
 import logging
 
 from simbench.converter.auxiliary import (
@@ -327,7 +332,7 @@ def pp2csv_data(
     _extend_pandapower_net_columns(net)
     if drop_inactive_elements:
         # attention: trafo3ws are not considered in current version of drop_inactive_elements()
-        pp.drop_inactive_elements(net, respect_switches=False)
+        pp_drop_inactive_elements(net, respect_switches=False)
     dev_from_std = DeviationFromStdType().diagnostic(net)
     if dev_from_std:
         logger.warning(

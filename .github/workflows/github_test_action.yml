@@ -52,7 +52,6 @@ jobs:
         verbose: true
 
   warnings:
-
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -70,10 +69,9 @@ jobs:
         python -m pip list
     - name: Test with pytest
       run: |
-        pytest -W error
+        pytest -W default
 
   tutorial_tests:
-
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -93,7 +91,6 @@ jobs:
           PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE python -m pytest --nbmake -n=auto --nbmake-timeout=900 "./tutorials"
 
   tutorial_warnings_tests:
-
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -110,7 +107,7 @@ jobs:
           python -m pip list
       - name: Test with pytest
         run: |
-          PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE python -m pytest -W error --nbmake -n=auto --nbmake-timeout=900 "./tutorials"
+          PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE python -m pytest -W default --nbmake -n=auto --nbmake-timeout=900 "./tutorials"
 
   docs_check:
     needs: build

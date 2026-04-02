@@ -19,6 +19,12 @@ from simbench.converter.auxiliary import (
 from simbench.converter.voltLvl import get_voltlvl
 from simbench.converter.format_information import get_columns
 
+try:
+    from pandapower.toolbox.element_selection import get_connected_buses
+    from pandapower.toolbox.data_modification import add_column_from_node_to_elements, add_column_from_element_to_elements
+except ImportError:
+    from pandapower import get_connected_buses, add_column_from_node_to_elements, add_column_from_element_to_elements
+
 logger = logging.getLogger(__name__)
 
 __author__ = "smeinecke"
@@ -336,7 +342,7 @@ def merge_busbar_coordinates(net, on_bus_geodata):
     for bb_node in bb_nodes:
         if bb_node in all_connected_buses:
             continue
-        connected_nodes = pp.get_connected_buses(
+        connected_nodes = get_connected_buses(
             net, bb_node, consider=("t", "s")
         )
         if len(connected_nodes):
@@ -383,7 +389,7 @@ def provide_subnet_col(net):
 
     # --- If both, subnet and zone, are not available, take subnet from bus
     # add subnet column from node to all elements but "trafo"
-    pp.add_column_from_node_to_elements(
+    add_column_from_node_to_elements(
         net,
         "subnet",
         replace=False,
@@ -391,7 +397,7 @@ def provide_subnet_col(net):
         branch_bus=["from_bus", "lv_bus"],
     )
     # add subnet column from node to trafo without verbose
-    pp.add_column_from_node_to_elements(
+    add_column_from_node_to_elements(
         net,
         "subnet",
         replace=False,
@@ -399,7 +405,7 @@ def provide_subnet_col(net):
         branch_bus=["from_bus", "lv_bus"],
         verbose=False,
     )
-    pp.add_column_from_element_to_elements(
+    add_column_from_element_to_elements(
         net, "subnet", replace=False, elements=["measurement"]
     )
 
@@ -434,7 +440,7 @@ def provide_voltLvl_col(net):
 
     # --- provide voltLvl parameters for all elements
     # add voltLvl column from node to all elements but "trafo"
-    pp.add_column_from_node_to_elements(
+    add_column_from_node_to_elements(
         net,
         "voltLvl",
         replace=False,
@@ -442,7 +448,7 @@ def provide_voltLvl_col(net):
         branch_bus=["to_bus", "hv_bus"],
     )
     # add voltLvl column from node to trafo without verbose
-    pp.add_column_from_node_to_elements(
+    add_column_from_node_to_elements(
         net,
         "voltLvl",
         replace=False,
@@ -450,7 +456,7 @@ def provide_voltLvl_col(net):
         branch_bus=["to_bus", "hv_bus"],
         verbose=False,
     )
-    pp.add_column_from_element_to_elements(
+    add_column_from_element_to_elements(
         net, "voltLvl", replace=False, elements=["measurement"]
     )
     # correct voltLvl for trafos
@@ -466,17 +472,17 @@ def provide_voltLvl_col(net):
 def provide_substation_cols(net):
     # --- providing 'substation' column in switches and trafos
     if "substation" in net.bus.columns:
-        pp.add_column_from_node_to_elements(
+        add_column_from_node_to_elements(
             net, "substation", replace=False, elements=["switch"]
         )
-        pp.add_column_from_node_to_elements(
+        add_column_from_node_to_elements(
             net,
             "substation",
             replace=False,
             elements=["trafo"],
             branch_bus=["from_bus", "lv_bus"],
         )
-    pp.add_column_from_element_to_elements(
+    add_column_from_element_to_elements(
         net, "substation", replace=False, elements=["measurement"]
     )
 
