@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2026 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -12,7 +12,9 @@ __author__ = "smeinecke"
 
 
 def test_filter_loadcases():
-    test_network_path = os.path.join(sb_dir, "test", "converter", "test_network")
+    test_network_path = os.path.join(
+        sb_dir, "test", "converter", "test_network"
+    )
     data = sb.read_csv_data(test_network_path, ";")
     assert data["StudyCases"].shape[0] == 24
     assert data["StudyCases"].shape[1]

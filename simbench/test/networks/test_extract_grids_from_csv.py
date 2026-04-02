@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2026 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -14,8 +14,9 @@ from pandapower.topology import unsupplied_buses
 
 from simbench import sb_dir
 import simbench as sb
-from simbench.networks.extract_simbench_grids_from_csv import \
-    _get_extracted_csv_data_from_dict
+from simbench.networks.extract_simbench_grids_from_csv import (
+    _get_extracted_csv_data_from_dict,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,19 +31,28 @@ def set_scalings(net, scaling):
 
 
 def test_get_bus_bus_switch_indices_from_csv():
-    node_table = pd.DataFrame([["Bus 1", "Type 4"],
-                               ["Bus 3", "Type 1"],
-                               ["Bus 4", "auxiliary"],
-                               ["Bus 5", "auxiliary"]], columns=["id", "type"])
-    switch_table = pd.DataFrame([["Sw 2", "Bus 1", "Bus 3"],
-                                 ["Sw 3", "Bus 1", "Bus 4"],
-                                 ["Sw 7", "Bus 1", "Bus 5"],
-                                 ["Sw 8", "Bus 4", "Bus 3"],
-                                 ["Sw 4", "Bus 4", "Bus 1"],
-                                 ["Sw 9", "Bus 3", "Bus 1"],
-                                 ["Sw 5", "Bus 5", "Bus 4"],
-                                 ["Sw 1", "Bus 1", "Bus 2"]],
-                                columns=["id", "nodeA", "nodeB"])
+    node_table = pd.DataFrame(
+        [
+            ["Bus 1", "Type 4"],
+            ["Bus 3", "Type 1"],
+            ["Bus 4", "auxiliary"],
+            ["Bus 5", "auxiliary"],
+        ],
+        columns=["id", "type"],
+    )
+    switch_table = pd.DataFrame(
+        [
+            ["Sw 2", "Bus 1", "Bus 3"],
+            ["Sw 3", "Bus 1", "Bus 4"],
+            ["Sw 7", "Bus 1", "Bus 5"],
+            ["Sw 8", "Bus 4", "Bus 3"],
+            ["Sw 4", "Bus 4", "Bus 1"],
+            ["Sw 9", "Bus 3", "Bus 1"],
+            ["Sw 5", "Bus 5", "Bus 4"],
+            ["Sw 1", "Bus 1", "Bus 2"],
+        ],
+        columns=["id", "nodeA", "nodeB"],
+    )
     try:
         sb.get_bus_bus_switch_indices_from_csv(switch_table, node_table)
         bool_ = False
@@ -59,125 +69,235 @@ def test_get_bus_bus_switch_indices_from_csv():
     assert bool_
 
     switch_table = switch_table.drop(switch_table.index[-1])
-    assert sb.get_bus_bus_switch_indices_from_csv(switch_table, node_table) == [0, 5]
+    assert sb.get_bus_bus_switch_indices_from_csv(
+        switch_table, node_table
+    ) == [0, 5]
 
 
 def test_get_relevant_subnets():
     input_path = sb.complete_data_path(0)
 
     def subnets_stay_equal(sb_code_info, hv_subnet, lv_subnets):
-        new_hv_subnet, new_lv_subnets = sb.get_relevant_subnets(sb_code_info,
-                                                                input_path=input_path)
+        new_hv_subnet, new_lv_subnets = sb.get_relevant_subnets(
+            sb_code_info, input_path=input_path
+        )
         assert hv_subnet == new_hv_subnet
         assert lv_subnets == new_lv_subnets
 
     hv_subnet_list = ["HV1", "HV2"]
-    mv_subnet_list = ["MV%i.%i" % (i, j) for j in [101, 201] for i in range(1, 5)]
-    lv_subnet_list = ["LV%i.%i" % (i, j) for i in range(1, 7) for j in [101, 201, 301, 401]]
-    unexpected_lv_subnet_list = ['LV5.101', 'LV6.101', 'LV1.301', 'LV2.301', 'LV1.401']
+    mv_subnet_list = [
+        "MV%i.%i" % (i, j) for j in [101, 201] for i in range(1, 5)
+    ]
+    lv_subnet_list = [
+        "LV%i.%i" % (i, j) for i in range(1, 7) for j in [101, 201, 301, 401]
+    ]
+    unexpected_lv_subnet_list = [
+        "LV5.101",
+        "LV6.101",
+        "LV1.301",
+        "LV2.301",
+        "LV1.401",
+    ]
     for u in unexpected_lv_subnet_list:
         lv_subnet_list.remove(u)
 
-    sb_code_params = [1, 'EHV', 'HVMVLV', 'mixed', 'all', '1', True]
-    hv_subnets, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
-    assert sorted(hv_subnets) == sorted(["EHV1"]+hv_subnet_list+mv_subnet_list[:4])
-    assert pd.Series(hv_subnet_list+mv_subnet_list+lv_subnet_list).isin(lv_subnets).all()
+    sb_code_params = [1, "EHV", "HVMVLV", "mixed", "all", "1", True]
+    hv_subnets, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
+    assert sorted(hv_subnets) == sorted(
+        ["EHV1"] + hv_subnet_list + mv_subnet_list[:4]
+    )
+    assert (
+        pd.Series(hv_subnet_list + mv_subnet_list + lv_subnet_list)
+        .isin(lv_subnets)
+        .all()
+    )
 
     subnets_stay_equal(sb.complete_grid_sb_code(1), hv_subnets, lv_subnets)
 
-    hv_subnet, lv_subnets = sb.get_relevant_subnets('1-complete_data-mixed-all-1-sw',
-                                                    input_path=input_path)
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        "1-complete_data-mixed-all-1-sw", input_path=input_path
+    )
     assert hv_subnet == "complete_data"
     assert lv_subnets == ""
 
-    sb_code_params = [1, 'EHV', 'HV', 'mixed', 'all', '0', False]
-    hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
+    sb_code_params = [1, "EHV", "HV", "mixed", "all", "0", False]
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
     assert hv_subnet == "EHV1"
     assert lv_subnets == ["HV1", "HV2"]
 
-    sb_code_params = [1, 'EHV', 'HV', 'mixed', 2, '0', False]
-    hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
+    sb_code_params = [1, "EHV", "HV", "mixed", 2, "0", False]
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
     assert hv_subnet == "EHV1"
     assert lv_subnets == ["HV2"]
 
-    sb_code_params = [1, 'EHV', '', 'mixed', '', '0', True]
-    hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
+    sb_code_params = [1, "EHV", "", "mixed", "", "0", True]
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
     assert hv_subnet == "EHV1"
     assert lv_subnets == []
 
-    sb_code_params = [1, 'HV', 'MV', 'urban', 'all', '0', False]
-    hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
+    sb_code_params = [1, "HV", "MV", "urban", "all", "0", False]
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
     assert hv_subnet == "HV2"
     assert 30 > len(lv_subnets) > 8
-    assert pd.Series(["MV1.201", "MV1.205", "MV2.203", "MV3.202", "MV4.203"]).isin(lv_subnets).all()
+    assert (
+        pd.Series(["MV1.201", "MV1.205", "MV2.203", "MV3.202", "MV4.203"])
+        .isin(lv_subnets)
+        .all()
+    )
 
-    sb_code_params = [1, 'HV', '', 'mixed', '', '1', True]
-    hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
+    sb_code_params = [1, "HV", "", "mixed", "", "1", True]
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
     assert hv_subnet == "HV1"
     assert lv_subnets == []
 
-    sb_code_params = [1, 'MV', 'LV', 'semiurb', '3.209', '0', False]
-    hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
+    sb_code_params = [1, "MV", "LV", "semiurb", "3.209", "0", False]
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
     assert hv_subnet == "MV2.101"
     assert lv_subnets == ["LV3.209"]
 
-    sb_code_params = [1, 'MV', 'LV', 'semiurb', '2.211', '1', True]
-    hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
+    sb_code_params = [1, "MV", "LV", "semiurb", "2.211", "1", True]
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
     assert hv_subnet == "MV2.101"
     assert lv_subnets == ["LV2.211"]
 
-    hv_subnet, lv_subnets = sb.get_relevant_subnets('1-MV-rural--0-no_sw', input_path=input_path)
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        "1-MV-rural--0-no_sw", input_path=input_path
+    )
     assert hv_subnet == "MV1.101"
     assert lv_subnets == []
 
-    sb_code_params = [1, 'LV', '', 'urban6', '', '0', False]
-    hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
+    sb_code_params = [1, "LV", "", "urban6", "", "0", False]
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
     assert hv_subnet == "LV6.201"
     assert lv_subnets == []
 
-    hv_subnet, lv_subnets = sb.get_relevant_subnets('1-LV-semiurb5--0-sw', input_path=input_path)
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        "1-LV-semiurb5--0-sw", input_path=input_path
+    )
     assert hv_subnet == "LV5.201"
     assert lv_subnets == []
 
-    hv_subnet, lv_subnets = sb.get_relevant_subnets('1-LV-semiurb4--0-no_sw',
-                                                    input_path=input_path)
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        "1-LV-semiurb4--0-no_sw", input_path=input_path
+    )
     assert hv_subnet == "LV4.101"
     assert lv_subnets == []
 
 
 def csv_data_to_test_extracting():
-    test_network_path = os.path.join(sb_dir, "test", "converter", "test_network")
+    test_network_path = os.path.join(
+        sb_dir, "test", "converter", "test_network"
+    )
     csv_data = sb.read_csv_data(test_network_path, sep=";")
-    tested_tables = ["Node", "Load", "ExternalNet", "Switch", "Coordinates", "Measurement"]
+    tested_tables = [
+        "Node",
+        "Load",
+        "ExternalNet",
+        "Switch",
+        "Coordinates",
+        "Measurement",
+    ]
     csv_data = {tt: csv_data[tt] for tt in tested_tables}
-    csv_data["Node"]["subnet"] = ["EHV1_Feeder1"]*2 + ["EHV2"]*2 + ["EHV1_HV1"]*3 + [
-        "HV1_Feder%i" % i for i in range(4)] + ["HV1_MV3.101"]*2 + ["MV3.101"] + ["EHV1_Feeder1"]*2
-    csv_data["Load"]["subnet"] = ["EHV1_Load1", "EHV2_Load6", "EHV1_HV1_eq", "EHV1_HV1_load",
-                                  "HV1_MV3.101_eq", "MV3.101_HV1_eq"]
-    csv_data["ExternalNet"]["subnet"] = ["EHV1_boundary", "HV1_EHV1_eq", "MV3.101_HV1_eq",
-                                         "MV3.101_bound", "EHV1_HV1_eq"]
+    csv_data["Node"]["subnet"] = (
+        ["EHV1_Feeder1"] * 2
+        + ["EHV2"] * 2
+        + ["EHV1_HV1"] * 3
+        + ["HV1_Feder%i" % i for i in range(4)]
+        + ["HV1_MV3.101"] * 2
+        + ["MV3.101"]
+        + ["EHV1_Feeder1"] * 2
+    )
+    csv_data["Load"]["subnet"] = [
+        "EHV1_Load1",
+        "EHV2_Load6",
+        "EHV1_HV1_eq",
+        "EHV1_HV1_load",
+        "HV1_MV3.101_eq",
+        "MV3.101_HV1_eq",
+    ]
+    csv_data["ExternalNet"]["subnet"] = [
+        "EHV1_boundary",
+        "HV1_EHV1_eq",
+        "MV3.101_HV1_eq",
+        "MV3.101_bound",
+        "EHV1_HV1_eq",
+    ]
     csv_data["Switch"].loc[3] = csv_data["Switch"].loc[0]
-    csv_data["Switch"].loc[3, ["id", "nodeA", "nodeB"]] = ["BusBus2", "Bus 2", "Bus 4"]
-    csv_data["Switch"]["subnet"] = ["EHV1_HV1", "EHV1_HV1", "HV1_MV3.101", "HV1_MV3.101",
-                                    "EHV1_HV1"]
-    csv_data["Coordinates"]["subnet"] = list(csv_data["Node"]["subnet"][1:12]) + ["MV3.101"]
-    csv_data["Measurement"] = pd.concat([csv_data["Measurement"], csv_data["Measurement"],
-                                        csv_data["Measurement"]], ignore_index=True)
+    csv_data["Switch"].loc[3, ["id", "nodeA", "nodeB"]] = [
+        "BusBus2",
+        "Bus 2",
+        "Bus 4",
+    ]
+    csv_data["Switch"]["subnet"] = [
+        "EHV1_HV1",
+        "EHV1_HV1",
+        "HV1_MV3.101",
+        "HV1_MV3.101",
+        "EHV1_HV1",
+    ]
+    csv_data["Coordinates"]["subnet"] = list(
+        csv_data["Node"]["subnet"][1:12]
+    ) + ["MV3.101"]
+    csv_data["Measurement"] = pd.concat(
+        [
+            csv_data["Measurement"],
+            csv_data["Measurement"],
+            csv_data["Measurement"],
+        ],
+        ignore_index=True,
+    )
     csv_data["Measurement"]["name"] = ["Messung %i" % i for i in range(1, 7)]
-    csv_data["Measurement"]["subnet"] = ["HV1", "HV1_MV3.101", "EHV1_HV1"]*2
+    csv_data["Measurement"]["subnet"] = ["HV1", "HV1_MV3.101", "EHV1_HV1"] * 2
     return csv_data
 
 
-def assert_csv_data_shape(csv_data, n_node, n_load, n_ext, n_sw, n_meas, print_instead=False):
+def assert_csv_data_shape(
+    csv_data, n_node, n_load, n_ext, n_sw, n_meas, print_instead=False
+):
     for tablename, n_expected in zip(
-      ["Node", "Load", "ExternalNet", "Switch", "Coordinates", "Measurement"],
-      [n_node, n_load, n_ext, n_sw, len(csv_data["Node"]["coordID"].unique()), n_meas]):
+        [
+            "Node",
+            "Load",
+            "ExternalNet",
+            "Switch",
+            "Coordinates",
+            "Measurement",
+        ],
+        [
+            n_node,
+            n_load,
+            n_ext,
+            n_sw,
+            len(csv_data["Node"]["coordID"].unique()),
+            n_meas,
+        ],
+    ):
         if not print_instead:
             assert csv_data[tablename].shape[0] == n_expected
         else:
             if csv_data[tablename].shape[0] != n_expected:
-                print("%s number (is / should be): %i / %i" % (
-                    tablename, csv_data[tablename].shape[0], n_expected))
+                print(
+                    "%s number (is / should be): %i / %i"
+                    % (tablename, csv_data[tablename].shape[0], n_expected)
+                )
 
 
 def test_get_extracted_csv_data_from_dict(print_instead=False):
@@ -215,9 +335,12 @@ def test_get_extracted_csv_data_from_dict(print_instead=False):
         print("\ndata6")
     assert_csv_data_shape(data6, 13, 2, 1, 5, 5, print_instead)
 
-    hv_subnet, lv_subnets = sb.get_relevant_subnets('1-complete_data-mixed-all-2-sw',
-                                                    input_path=input_path)
-    data7 = _get_extracted_csv_data_from_dict(csv_data, (hv_subnet, lv_subnets))
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        "1-complete_data-mixed-all-2-sw", input_path=input_path
+    )
+    data7 = _get_extracted_csv_data_from_dict(
+        csv_data, (hv_subnet, lv_subnets)
+    )
     if print_instead:
         print("\nCheck equal DataFrames for lv_subnets=['all'].")
     for key, df7 in data7.items():
@@ -227,9 +350,13 @@ def test_get_extracted_csv_data_from_dict(print_instead=False):
         else:
             print(key, to_assert)
 
-    sb_code_params = [1, 'EHV', 'HVMVLV', 'mixed', 'all', '1', True]
-    hv_subnets, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
-    data8 = _get_extracted_csv_data_from_dict(csv_data, (hv_subnets, lv_subnets))
+    sb_code_params = [1, "EHV", "HVMVLV", "mixed", "all", "1", True]
+    hv_subnets, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
+    data8 = _get_extracted_csv_data_from_dict(
+        csv_data, (hv_subnets, lv_subnets)
+    )
     assert_csv_data_shape(data8, 14, 1, 2, 5, 4, print_instead)
 
 
@@ -242,27 +369,31 @@ def _net_for_testing():
     pp.create_switch(net, 4, 5, "b", closed=False)
     pp.create_switch(net, 5, 6, "b", closed=True)
 
-    pp.create_line(net, 7, 8, 1, 'NAYY 4x50 SE', name="Line 0")
+    pp.create_line(net, 7, 8, 1, "NAYY 4x50 SE", name="Line 0")
     pp.create_switch(net, 7, 0, "l", closed=True)
     pp.create_switch(net, 8, 0, "l", closed=True)
 
-    pp.create_line(net, 9, 10, 1, 'NAYY 4x50 SE', name="Line 1")
+    pp.create_line(net, 9, 10, 1, "NAYY 4x50 SE", name="Line 1")
     pp.create_switch(net, 9, 1, "l", closed=False)
     pp.create_switch(net, 10, 1, "l", closed=True)
 
-    pp.create_line(net, 11, 12, 1, 'NAYY 4x50 SE', name="Line 2")
+    pp.create_line(net, 11, 12, 1, "NAYY 4x50 SE", name="Line 2")
     pp.create_switch(net, 11, 2, "l", closed=True)
     pp.create_switch(net, 12, 2, "l", closed=False)
 
-    pp.create_line(net, 13, 14, 1, 'NAYY 4x50 SE', name="Line 3")
+    pp.create_line(net, 13, 14, 1, "NAYY 4x50 SE", name="Line 3")
     pp.create_switch(net, 13, 3, "l", closed=False)
     pp.create_switch(net, 14, 3, "l", closed=False)
 
-    pp.create_transformer(net, 15, 17, std_type="0.4 MVA 10/0.4 kV", name="Trafo 0")
+    pp.create_transformer(
+        net, 15, 17, std_type="0.4 MVA 10/0.4 kV", name="Trafo 0"
+    )
     pp.create_switch(net, 15, 0, "t", closed=True)
     pp.create_switch(net, 17, 0, "t", closed=False)
 
-    pp.create_transformer(net, 16, 18, std_type="0.4 MVA 10/0.4 kV", name="Trafo 1")
+    pp.create_transformer(
+        net, 16, 18, std_type="0.4 MVA 10/0.4 kV", name="Trafo 1"
+    )
     pp.create_switch(net, 16, 1, "t", closed=False)
     pp.create_switch(net, 18, 1, "t", closed=True)
 
@@ -275,18 +406,24 @@ def test_generate_no_sw_variant():
     sb.generate_no_sw_variant(net)
     for elm in ["line", "trafo"]:
         _preserve_dtypes(net[elm], net_orig[elm].dtypes)
-    assert (net.bus.name.values == net_orig.bus.name.loc[net.bus.index.difference(
-            [1, 6])].values).all()
+    assert (
+        net.bus.name.values
+        == net_orig.bus.name.loc[net.bus.index.difference([1, 6])].values
+    ).all()
     assert pp.dataframes_equal(net.line, net_orig.line)
     assert pp.dataframes_equal(net.trafo, net_orig.trafo)
-    assert pp.dataframes_equal(net.switch, net_orig.switch.loc[[6, 9, 10, 11, 13, 14]])
+    assert pp.dataframes_equal(
+        net.switch, net_orig.switch.loc[[6, 9, 10, 11, 13, 14]]
+    )
 
 
 def bus_groups_connected_by_switches(net):
-    """ Returns a list of sets of buses which are connected via switches. """
+    """Returns a list of sets of buses which are connected via switches."""
     bus_groups = []
     bbsw = net.switch.index[net.switch.et == "b"]
-    bbsw_buses = pd.concat([net.switch.bus.loc[bbsw], net.switch.element.loc[bbsw]])
+    bbsw_buses = pd.concat(
+        [net.switch.bus.loc[bbsw], net.switch.element.loc[bbsw]]
+    )
 
     used_idxs = []
     for idx in bbsw_buses.index[~bbsw_buses.duplicated()]:
@@ -301,13 +438,15 @@ def bus_groups_connected_by_switches(net):
             used_idxs += list(idxs)
             bus_groups.append(set(bbsw_buses[idxs]))
 
-    assert len(used_idxs) == len(bbsw_buses) == 2*len(set(used_idxs))  # otherwise this code is buggy
+    assert (
+        len(used_idxs) == len(bbsw_buses) == 2 * len(set(used_idxs))
+    )  # otherwise this code is buggy
 
     return bus_groups
 
 
 def _test_net_validity(net, sb_code_params, shortened, input_path=None):
-    """ This function is to test validity of a simbench net. """
+    """This function is to test validity of a simbench net."""
 
     # --- deduce values from sb_code_params to test extracted csv data
     # lv_net_extent: 0-no lv_net    1-one lv_net    2-all lv_nets
@@ -325,8 +464,11 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
 
     # --- test data existence
     # buses
-    expected_buses = {0: 12, 1: 80, 2: net_factor*12}[lv_net_extent] if sb_code_params[1] != "EHV" \
+    expected_buses = (
+        {0: 12, 1: 80, 2: net_factor * 12}[lv_net_extent]
+        if sb_code_params[1] != "EHV"
         else {0: 6, 1: 65, 2: 125}[lv_net_extent]
+    )
     assert net.bus.shape[0] > expected_buses
 
     # ext_grid
@@ -335,12 +477,14 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
     # switches
     if sb_code_params[6]:
         if int(sb_code_params[5]) > 0:
-            if net.switch.shape[0] <= net.line.shape[0]*2-2:
-                logger.info("There are %i switches, but %i " % (
-                            net.switch.shape[0], net.line.shape[0]) +
-                            "lines -> some lines are not surrounded by switches.")
+            if net.switch.shape[0] <= net.line.shape[0] * 2 - 2:
+                logger.info(
+                    "There are %i switches, but %i "
+                    % (net.switch.shape[0], net.line.shape[0])
+                    + "lines -> some lines are not surrounded by switches."
+                )
         else:
-            assert net.switch.shape[0] > net.line.shape[0]*2-2
+            assert net.switch.shape[0] > net.line.shape[0] * 2 - 2
     else:
         assert not net.switch.closed.any()
         assert (net.switch.et != "b").all()
@@ -351,20 +495,30 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
         if len(unsup_buses):
             logger.error("There are %i unsupplied buses." % len(unsup_buses))
             if len(unsup_buses) < 10:
-                logger.error("These are: " + str(net.bus.name.loc[unsup_buses]))
+                logger.error(
+                    "These are: " + str(net.bus.name.loc[unsup_buses])
+                )
         assert not len(unsup_buses)
 
     # lines
-    assert net.line.shape[0] >= net.bus.shape[0]-net.trafo.shape[0]-(net.switch.et == "b").sum() - \
-        2*net.trafo3w.shape[0]-net.impedance.shape[0]-net.dcline.shape[0]-net.ext_grid.shape[0]
+    assert (
+        net.line.shape[0]
+        >= net.bus.shape[0]
+        - net.trafo.shape[0]
+        - (net.switch.et == "b").sum()
+        - 2 * net.trafo3w.shape[0]
+        - net.impedance.shape[0]
+        - net.dcline.shape[0]
+        - net.ext_grid.shape[0]
+    )
 
     # trafos
     if sb_code_params[1] == "EHV":
         expected_trafos = {0: 0, 1: 2, 2: 8}[lv_net_extent]
     elif sb_code_params[1] == "HV":
-        expected_trafos = {0: 2, 1: 4, 2: net_factor*2}[lv_net_extent]
+        expected_trafos = {0: 2, 1: 4, 2: net_factor * 2}[lv_net_extent]
     elif sb_code_params[1] == "MV":
-        expected_trafos = {0: 2, 1: 3, 2: net_factor*1}[lv_net_extent]
+        expected_trafos = {0: 2, 1: 3, 2: net_factor * 1}[lv_net_extent]
     elif sb_code_params[1] == "LV":
         expected_trafos = {0: 1}[lv_net_extent]
     elif sb_code_params[1] == "complete_data":
@@ -372,21 +526,28 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
     assert net.trafo.shape[0] >= expected_trafos
 
     # load
-    expected_loads = {0: 10, 1: net_factor, 2: net_factor*10}[lv_net_extent] if \
-        sb_code_params[1] != "EHV" else {0: 3, 1: 53, 2: 113}[lv_net_extent]
+    expected_loads = (
+        {0: 10, 1: net_factor, 2: net_factor * 10}[lv_net_extent]
+        if sb_code_params[1] != "EHV"
+        else {0: 3, 1: 53, 2: 113}[lv_net_extent]
+    )
     assert net.load.shape[0] > expected_loads
 
     # sgen
     if sb_code_params[1] == "LV":
         expected_sgen = {0: 0}[lv_net_extent]
     elif sb_code_params[2] == "LV":
-        expected_sgen = {1: 50, 2: 50+net_factor*1}[lv_net_extent]
+        expected_sgen = {1: 50, 2: 50 + net_factor * 1}[lv_net_extent]
     else:
         expected_sgen = expected_loads
     assert net.sgen.shape[0] > expected_sgen
 
     # measurement
-    if pd.Series(["HV", "MV"]).isin([sb_code_params[1], sb_code_params[2]]).any():
+    if (
+        pd.Series(["HV", "MV"])
+        .isin([sb_code_params[1], sb_code_params[2]])
+        .any()
+    ):
         assert net.measurement.shape[0] > 1
 
     # bus_geodata
@@ -395,16 +556,33 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
     # --- test data content
     # substation
     for elm in ["bus", "trafo", "trafo3w", "switch"]:
-        mentioned_substations = pd.Series(net[elm].substation.unique()).dropna()
+        mentioned_substations = pd.Series(
+            net[elm].substation.unique()
+        ).dropna()
         if not mentioned_substations.isin(net.substation.name.values).all():
-            raise AssertionError(str(list(mentioned_substations.loc[~mentioned_substations.isin(
-                net.substation.name.values)].values)) +
-                " from element '%s' misses in net.substation" % elm)
+            raise AssertionError(
+                str(
+                    list(
+                        mentioned_substations.loc[
+                            ~mentioned_substations.isin(
+                                net.substation.name.values
+                            )
+                        ].values
+                    )
+                )
+                + " from element '%s' misses in net.substation" % elm
+            )
 
     # check subnet
-    input_path = input_path if input_path is not None else sb.complete_data_path(sb_code_params[5])
-    hv_subnet, lv_subnets = sb.get_relevant_subnets(sb_code_params, input_path=input_path)
-    elms_with_subnet = ['bus', 'ext_grid', 'line', 'load', 'sgen', 'trafo']
+    input_path = (
+        input_path
+        if input_path is not None
+        else sb.complete_data_path(sb_code_params[5])
+    )
+    hv_subnet, lv_subnets = sb.get_relevant_subnets(
+        sb_code_params, input_path=input_path
+    )
+    elms_with_subnet = ["bus", "ext_grid", "line", "load", "sgen", "trafo"]
     if sb_code_params[6]:
         elms_with_subnet += ["switch"]
 
@@ -413,14 +591,24 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
         for elm in pp.pp_elements():
             if "subnet" not in net[elm].columns or not bool(net[elm].shape[0]):
                 if elm in elms_with_subnet:
-                    raise ValueError(str(elm) + " ---- " + str(elms_with_subnet))
+                    raise ValueError(
+                        str(elm) + " ---- " + str(elms_with_subnet)
+                    )
             else:  # subnet is in net[elm].columns and there are one or more elements
                 subnet_split = net[elm].subnet.str.split("_", expand=True)
                 subnet_ok = set()
-                subnet_ok |= set(subnet_split.index[subnet_split[0].isin(hv_subnets+lv_subnets)])
+                subnet_ok |= set(
+                    subnet_split.index[
+                        subnet_split[0].isin(hv_subnets + lv_subnets)
+                    ]
+                )
                 if elm in ["bus", "measurement", "switch"]:
                     if 1 in subnet_split.columns:
-                        subnet_ok |= set(subnet_split.index[subnet_split[1].isin(hv_subnets)])
+                        subnet_ok |= set(
+                            subnet_split.index[
+                                subnet_split[1].isin(hv_subnets)
+                            ]
+                        )
                 assert len(subnet_ok) == net[elm].shape[0]
 
     # check profile existing
@@ -442,30 +630,41 @@ def _test_net_validity(net, sb_code_params, shortened, input_path=None):
 
 @pytest.mark.slow
 def test_get_simbench_net(sb_codes=None, n=8, scenarios=None, input_path=None):
-    """ Test nets exctracted from csv (shortened) folder. 'shortened' and 'test' must be set
-        properly in extract_simbench_grids_from_csv.py
-        If sb_codes is None, randomn simbench codes are tested in the number of n.
-        If in input_path is None, no input_path will be given to get_simbench_net()
+    """Test nets exctracted from csv (shortened) folder. 'shortened' and 'test' must be set
+    properly in extract_simbench_grids_from_csv.py
+    If sb_codes is None, randomn simbench codes are tested in the number of n.
+    If in input_path is None, no input_path will be given to get_simbench_net()
     """
     shortened = input_path is not None and "shortened" in input_path
     scenarios = scenarios if scenarios is not None else [0, 1, 2]
     if not sb_codes:
         sb_codes = []
         for scenario in scenarios:
-            sb_codes += sb.collect_all_simbench_codes(scenario=scenario, shortened=shortened)
+            sb_codes += sb.collect_all_simbench_codes(
+                scenario=scenario, shortened=shortened
+            )
         first = 2  # always test the first 2 (complete_data and complete_grid)
         np.random.seed(int(time.time()))
-        sb_codes = [sb_codes[i] for i in np.append(np.random.randint(first, len(sb_codes)-first, n),
-                                                   range(first))]
+        sb_codes = [
+            sb_codes[i]
+            for i in np.append(
+                np.random.randint(first, len(sb_codes) - first, n),
+                range(first),
+            )
+        ]
     else:
         sb_codes = sb.ensure_iterability(sb_codes)
 
     for sb_code_info in sb_codes:
-        sb_code, sb_code_params = sb.get_simbench_code_and_parameters(sb_code_info)
+        sb_code, sb_code_params = sb.get_simbench_code_and_parameters(
+            sb_code_info
+        )
         logger.info("Get SimBench net '%s'" % sb_code)
         net = sb.get_simbench_net(sb_code, input_path=input_path)
         logger.info("Now test validity...")
-        _test_net_validity(net, sb_code_params, shortened, input_path=input_path)
+        _test_net_validity(
+            net, sb_code_params, shortened, input_path=input_path
+        )
 
 
 def aux_node_names_with_dupl_branches(csv_data):
@@ -475,14 +674,18 @@ def aux_node_names_with_dupl_branches(csv_data):
     tB = csv_data["Transformer"]["nodeLV"]
 
     all_branch_nodes = pd.concat([lA, lB, tA, tB], ignore_index=True)
-    dupl_branch_nodes = set(all_branch_nodes.loc[all_branch_nodes.duplicated()])
-    aux_nodes = csv_data["Node"]["id"].loc[csv_data["Node"]["type"] == "auxiliary"]
+    dupl_branch_nodes = set(
+        all_branch_nodes.loc[all_branch_nodes.duplicated()]
+    )
+    aux_nodes = csv_data["Node"]["id"].loc[
+        csv_data["Node"]["type"] == "auxiliary"
+    ]
 
     return sorted(dupl_branch_nodes & set(aux_nodes))
 
 
 def test_aux_nodes_without_multiple_connected_branches():
-    """ Test csv_data if there are auxiliary nodes with more than one connected branch element. """
+    """Test csv_data if there are auxiliary nodes with more than one connected branch element."""
     for scenario in range(3):
         csv_data = sb.read_csv_data(sb.complete_data_path(scenario), sep=";")
         annwdb = aux_node_names_with_dupl_branches(csv_data)
@@ -491,22 +694,29 @@ def test_aux_nodes_without_multiple_connected_branches():
 
 def test_get_all_simbench_profiles():
     for scenario in [0, 1, 2]:
-        profilesA = sb.get_simbench_net("1-complete_data-mixed-all-%s-sw" % str(scenario))[
-            "profiles"]
+        profilesA = sb.get_simbench_net(
+            "1-complete_data-mixed-all-%s-sw" % str(scenario)
+        )["profiles"]
         profilesB = sb.get_all_simbench_profiles(scenario)
 
         for prof_table in ["load", "powerplants", "renewables", "storage"]:
             assert prof_table in profilesB.keys()
 
         for prof_table in profilesB.keys():
-            assert profilesA[prof_table].shape[0] == profilesB[prof_table].shape[0]
+            assert (
+                profilesA[prof_table].shape[0]
+                == profilesB[prof_table].shape[0]
+            )
             if scenario > 0 or prof_table != "storage":
                 assert profilesB[prof_table].shape[0] > 0
-            assert not len(set(profilesA[prof_table].columns) - set(profilesB[prof_table].columns))
+            assert not len(
+                set(profilesA[prof_table].columns)
+                - set(profilesB[prof_table].columns)
+            )
             assert profilesB[prof_table].shape[1] > 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if 0:
         pytest.main([__file__, "-s"])
     else:

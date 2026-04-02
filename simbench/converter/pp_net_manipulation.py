@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2025 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2026 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -654,7 +654,7 @@ def _set_dependency_table_parameters(net):
         ("shunt", "step_dependency_table"),
         ("gen", "curve_dependency_table"),
         ("sgen", "curve_dependency_table"),
-        ] # parameters that would be casted from NaN to True but should be False by default
+    ]  # parameters that would be casted from NaN to True but should be False by default
     for et, param in et_params:
         if param in net[et].columns:
             net[et][param] = False
