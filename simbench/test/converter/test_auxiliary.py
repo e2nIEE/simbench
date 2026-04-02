@@ -8,6 +8,10 @@ import pandas as pd
 from copy import deepcopy
 from packaging import version
 import pandapower as pp
+try:
+    from pandapower.toolbox.comparison import compare_arrays, dataframes_equal
+except ImportError:
+    from pandapower import compare_arrays, dataframes_equal
 
 import simbench as sb
 
@@ -72,7 +76,7 @@ def test_column_indices():
     df = pd.DataFrame([[0, 3, 2, 4, 5, 6]], columns=["b", "q", "a", "g", "f", "c"])
     query_cols = ["b", "g", "f", "c", "q", "a", "q", "a", "f"]
     col_idx = sb.column_indices(df, query_cols)
-    assert all(pp.compare_arrays(col_idx, np.array([0, 3, 4, 5, 1, 2, 1, 2, 4])))
+    assert all(compare_arrays(col_idx, np.array([0, 3, 4, 5, 1, 2, 1, 2, 4])))
 
 
 def test_get_unique_duplicated_dict():
@@ -111,7 +115,7 @@ def test_reindex_dict_dataframes():
     expected = {1: df0, 2: df0}
     sb.reindex_dict_dataframes(dict_)
     for k in dict_.keys():
-        assert pp.dataframes_equal(dict_[k], expected[k])
+        assert dataframes_equal(dict_[k], expected[k])
 
 
 def test_avoid_duplicates_in_column():
@@ -194,14 +198,14 @@ def test_merge_dataframes():
                          ["01.02.2016 00:00:00", -1, 3.2, None,    2],
                          ["02.02.2016 13:45:00",  3, 1,   None,    4]],
                         columns=["time", "A", "B", "C", "D"])
-    assert pp.dataframes_equal(return1, res1)
+    assert dataframes_equal(return1, res1)
 
     # ordered index and column, df2 with precedence, time as index
     return2 = sb.merge_dataframes([df1, df2], column_to_sort="time", keep="last",
                                   index_time_str="%d.%m.%Y %H:%M:%S")
     res2 = deepcopy(res1)
     res2.loc[0, ["A", "B"]] = df2.loc[1, ["A", "B"]]
-    assert pp.dataframes_equal(return2, res2)
+    assert dataframes_equal(return2, res2)
 
     # --- changed input
     new_df1_idx = [1, 3, 4]
@@ -219,13 +223,13 @@ def test_merge_dataframes():
     else:
         res5 = res5.reindex_axis(["A", "B", "C", "D", "time"], axis=1)
     res5.index = [1, 2, 3, 4, 11, 12]
-    assert pp.dataframes_equal(return5, res5)
+    assert dataframes_equal(return5, res5)
 
     # ordered index and column, df2 with precedence, no extra index
     return6 = sb.merge_dataframes([df1, df2], keep="last")
     res6 = deepcopy(res5)
     res6.loc[1, ["A", "B"]] = df2.loc[1, ["A", "B"]]
-    assert pp.dataframes_equal(return6, res6)
+    assert dataframes_equal(return6, res6)
 
     # beware idx order, df1 with precedence, no extra index
     return7 = sb.merge_dataframes([df1, df2], keep="first", sort_index=False, sort_column=False)
@@ -234,7 +238,7 @@ def test_merge_dataframes():
     except TypeError:  # legacy for pandas <0.21
         res7 = deepcopy(res5).reindex_axis(unsorted_index)
         res7 = res7.reindex_axis(unsorted_columns, axis=1)
-    assert pp.dataframes_equal(return7, res7)
+    assert dataframes_equal(return7, res7)
 
     # beware idx order, df1 with precedence, no extra index
     return8 = sb.merge_dataframes([df1, df2], keep="last", sort_index=False, sort_column=False)
@@ -243,12 +247,12 @@ def test_merge_dataframes():
     except TypeError:  # legacy for pandas <0.21
         res8 = deepcopy(res6).reindex_axis(unsorted_index)
         res8 = res8.reindex_axis(unsorted_columns, axis=1)
-    assert pp.dataframes_equal(return8, res8)
+    assert dataframes_equal(return8, res8)
 
     # merge 3 dfs while keeping first duplicates
     return9 = sb.merge_dataframes([df1, df2, df3], keep="first", column_to_sort="time",
                                   index_time_str="%d.%m.%Y %H:%M:%S")
-    assert pp.dataframes_equal(return9, res1)
+    assert dataframes_equal(return9, res1)
 
     # merge 3 dfs while keeping last duplicates
     return10 = sb.merge_dataframes([df1, df2, df3], keep="last", column_to_sort="time",
@@ -256,7 +260,7 @@ def test_merge_dataframes():
     res10 = deepcopy(res1)
     df3_col_except_time = df3.columns.difference(["time"])
     res10.loc[0, df3_col_except_time] = df3.loc[0, df3_col_except_time].values
-    assert pp.dataframes_equal(return10, res10)
+    assert dataframes_equal(return10, res10)
 
     # merge 3 dfs while keeping all duplicates
     return11 = sb.merge_dataframes([df1, df2, df3], keep="all")

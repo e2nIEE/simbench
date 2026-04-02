@@ -11,6 +11,11 @@ from pandapower.auxiliary import _preserve_dtypes
 from simbench.converter import replace_branch_switches, create_branch_switches, \
     repl_nans_in_obj_cols_to_empty_str
 
+try:
+    from pandapower.toolbox.comparison import nets_equal
+except ImportError:
+    from pandapower import nets_equal
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -79,9 +84,9 @@ def test_branch_switch_changes():
     repl_nans_in_obj_cols_to_empty_str(net2)
 
     if version.parse(pp.__version__) <= version.parse("2.7.0"):
-        assert pp.nets_equal(net_orig, net2, tol=1e-7)
+        assert nets_equal(net_orig, net2, tol=1e-7)
     else:
-        assert pp.nets_equal(net_orig, net2)
+        assert nets_equal(net_orig, net2)
 
 
 if __name__ == "__main__":

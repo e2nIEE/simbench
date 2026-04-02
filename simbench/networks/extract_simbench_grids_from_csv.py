@@ -15,6 +15,12 @@ from simbench.networks.loadcases import filter_loadcases
 from simbench import csv_data2pp, read_csv_data, csv_tablenames, idx_in_2nd_array, \
     ensure_iterability, pp_profile_names
 
+try:
+    from pandapower.toolbox.element_selection import get_connected_buses
+    from pandapower.toolbox.grid_modification import fuse_buses
+except ImportError:
+    from pandapower import get_connected_buses, fuse_buses
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -287,7 +293,7 @@ def _get_connected_buses_via_bus_bus_switch(net, buses):
     buses = set(ensure_iterability(buses))
     add_buses = [1]  # set anything to add_buses to start the while loop
     while(len(add_buses)):
-        add_buses = pp.get_connected_buses(net, buses, consider=("s"))
+        add_buses = get_connected_buses(net, buses, consider=("s"))
         buses |= add_buses
     return buses
 
@@ -316,7 +322,7 @@ def generate_no_sw_variant(net):
 
     # fuse buses which are connected via bus-bus switches
     for b1, b2 in to_fuse.items():
-        pp.fuse_buses(net, b1, b2)
+        fuse_buses(net, b1, b2)
 
     # replace auxiliary type of buses with no switch connected anymore
     aux_buses = net.bus.index[net.bus.type == "auxiliary"]
