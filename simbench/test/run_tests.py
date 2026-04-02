@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2026 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -9,10 +9,8 @@ import pytest
 
 from simbench import sb_dir
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
+
 test_dir = os.path.abspath(os.path.join(sb_dir, "test"))
 
 
@@ -28,7 +26,7 @@ def _get_cpus():
 
 
 def run_all_tests(parallel=False, n_cpu=None):
-    """ function executing all tests
+    """function executing all tests
 
     Inputs:
     parallel (bool, False) - If true and pytest-xdist is installed, tests are run in parallel
@@ -47,7 +45,7 @@ def run_all_tests(parallel=False, n_cpu=None):
 
 
 def run_fast_tests(parallel=False, n_cpu=None):
-    """ function executing fast tests
+    """function executing fast tests
     Only executes the tests which are **not** marked as slow with pytest.mark.slow
 
     parallel (bool, False) - If true and pytest-xdist is installed, tests are run in parallel
@@ -64,7 +62,7 @@ def run_fast_tests(parallel=False, n_cpu=None):
 
 
 def run_slow_tests(parallel=False, n_cpu=None):
-    """ function executing slow tests
+    """function executing slow tests
     Only executes the tests which are marked as slow with pytest.mark.slow
 
     parallel (bool, False) - If true and pytest-xdist is installed, tests are run in parallel

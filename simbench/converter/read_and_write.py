@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2026 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
@@ -6,21 +6,22 @@ import numpy as np
 import pandas as pd
 import os
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 from simbench.converter.auxiliary import merge_dataframes
-from simbench.converter.format_information import get_columns, csv_tablenames, get_dtypes
+from simbench.converter.format_information import (
+    get_columns,
+    csv_tablenames,
+    get_dtypes,
+)
 
 logger = logging.getLogger(__name__)
 
-__author__ = 'smeinecke'
+__author__ = "smeinecke"
 
 
 def _init_csv_table(tablename):
-    """ This function returns an initial, empty DataFrame with appropriate column names. """
+    """This function returns an initial, empty DataFrame with appropriate column names."""
     return pd.DataFrame([], columns=get_columns(tablename))
 
 
@@ -38,16 +39,23 @@ def _init_csv_tables(which_tables):
 
 
 def _correct_float_to_object_dtype(df, tablename):
-    """ This function corrects a DataFrame (df) belonging to 'tablename' float dtypes to object type
-        if get_dtypes() expects those columns to be in object type. """
+    """This function corrects a DataFrame (df) belonging to 'tablename' float dtypes to object type
+    if get_dtypes() expects those columns to be in object type."""
     dtypes = pd.DataFrame(df.dtypes)
     is_float_col = dtypes.index[dtypes[0] == float]
     eq_len = len(get_columns(tablename)) == len(get_dtypes(tablename))
     if not eq_len:
-        raise ValueError("For table '%s', there are %i columns but %i dtypes" % (
-            tablename, len(get_columns(tablename)), len(get_dtypes(tablename))))
+        raise ValueError(
+            "For table '%s', there are %i columns but %i dtypes"
+            % (
+                tablename,
+                len(get_columns(tablename)),
+                len(get_dtypes(tablename)),
+            )
+        )
     should_be_object_col = np.array(get_columns(tablename))[
-        np.array(get_dtypes(tablename)) == object]
+        np.array(get_dtypes(tablename)) == object
+    ]
     col_to_new_type = set(is_float_col) & set(should_be_object_col)
     for col in col_to_new_type:
         df[col] = df[col].astype(object)
@@ -79,35 +87,59 @@ def read_csv_data(path, sep, tablename=None, nrows=None):
         tablename = [tablename]
     elif tablename is None:
         return_dataframe = False
-        tablename = csv_tablenames(['elements', 'profiles', 'types', 'cases', 'res_elements'])
+        tablename = csv_tablenames(
+            ["elements", "profiles", "types", "cases", "res_elements"]
+        )
     else:
         return_dataframe = False
     for i in tablename:
         nrows = None if "Profile" not in i else nrows
         try:
             csv_tables[i] = pd.read_csv(
-                    os.path.join(path, "%s.csv" % i), sep=sep, nrows=nrows, index_col=False,
-                    dtype=dict(zip(get_columns(i), get_dtypes(i))))
+                os.path.join(path, "%s.csv" % i),
+                sep=sep,
+                nrows=nrows,
+                index_col=False,
+                dtype=dict(zip(get_columns(i), get_dtypes(i))),
+            )
         except (FileNotFoundError, OSError):
-            if i in ['Node', 'Load']:
-                logger.error(i + ".csv cannot be read from csv file. " +
-                             "Possibly the path %s does not exist." % path)
+            if i in ["Node", "Load"]:
+                logger.error(
+                    i
+                    + ".csv cannot be read from csv file. "
+                    + "Possibly the path %s does not exist." % path
+                )
             csv_tables[i] = _init_csv_table(i)
             csv_tables[i] = csv_tables[i][get_columns(i)]
         except ValueError:
             csv_tables[i] = pd.read_csv(
-                os.path.join(path, "%s.csv" % i), sep=sep, nrows=nrows,
-                index_col=False, low_memory=False)
-            _correct_float_to_object_dtype(csv_tables[i], i)  # possible but not necessary
+                os.path.join(path, "%s.csv" % i),
+                sep=sep,
+                nrows=nrows,
+                index_col=False,
+                low_memory=False,
+            )
+            _correct_float_to_object_dtype(
+                csv_tables[i], i
+            )  # possible but not necessary
     if not return_dataframe:
         return csv_tables
     else:
         return csv_tables[tablename[0]]
 
 
-def write2csv(path, data, mode="w", sep=";", float_format='%g', keys=None, keep="last",
-              must_store=None, nrows=None):
-    """ Writes 'data' to csv files.
+def write2csv(
+    path,
+    data,
+    mode="w",
+    sep=";",
+    float_format="%g",
+    keys=None,
+    keep="last",
+    must_store=None,
+    nrows=None,
+):
+    """Writes 'data' to csv files.
 
     INPUT:
         **path** (str) - path to folder with csv data files
@@ -135,12 +167,14 @@ def write2csv(path, data, mode="w", sep=";", float_format='%g', keys=None, keep=
         **nrows** (int, None) - number of rows to be write to csv for Load, RES and Storage
         profiles. If None, all rows will be written.
     """
-    if mode not in ['append_unique', 'a', 'w']:
+    if mode not in ["append_unique", "a", "w"]:
         mode = "w"
-        logger.warning("'mode' must be in ['append_unique', 'a', 'w']. 'w' " +
-                       "is assumed.")
+        logger.warning(
+            "'mode' must be in ['append_unique', 'a', 'w']. 'w' "
+            + "is assumed."
+        )
     # element tables that always will be stored if they are in 'data' - even if they are empty:
-    must_store = ['Node', 'Load'] if must_store is None else must_store
+    must_store = ["Node", "Load"] if must_store is None else must_store
     keys = data.keys() if keys is None else keys
     for i, d in data.items():
         # write all must_store and element tables with content
@@ -148,38 +182,73 @@ def write2csv(path, data, mode="w", sep=";", float_format='%g', keys=None, keep=
             this_path = os.path.join(path, "%s.csv" % i)
             file_misses = not os.path.exists(this_path)
             # only use "append_unique" if the file exists:
-            mod = 'a' if mode == "append_unique" and (file_misses or "Profile" in i) else mode
+            mod = (
+                "a"
+                if mode == "append_unique" and (file_misses or "Profile" in i)
+                else mode
+            )
 
             if "Profile" not in i:
                 # append only unique named elements to existing csv
                 index = (i == "StudyCases") & ("Study Case" not in d.columns)
                 if mod == "append_unique":
-                    d = pd.concat([read_csv_data(path, sep, i), d], ignore_index=True)
+                    d = pd.concat(
+                        [read_csv_data(path, sep, i), d], ignore_index=True
+                    )
                     dupl_cols = ["id"] if "id" in d.columns else ["node"]
-                    dupl_cols += [col for col in ["voltLvl", "subnet"] if col in d.columns]
+                    dupl_cols += [
+                        col
+                        for col in ["voltLvl", "subnet"]
+                        if col in d.columns
+                    ]
                     duplicates = d.loc[d.duplicated(dupl_cols, keep=keep)]
                     if len(duplicates) and "Type" not in i:
-                        logger.info("Writing to table '%s', these duplicated names are " % i +
-                                    "dropped: " + str(['%s' % name for name in duplicates.id]))
+                        logger.info(
+                            "Writing to table '%s', these duplicated names are "
+                            % i
+                            + "dropped: "
+                            + str(["%s" % name for name in duplicates.id])
+                        )
                     d = d.drop(duplicates.index)
-                    d.replace("", "NULL").fillna("NULL").to_csv(this_path, sep=sep, index=index,
-                                                                float_format=float_format)
+                    d.replace("", "NULL").fillna("NULL").to_csv(
+                        this_path,
+                        sep=sep,
+                        index=index,
+                        float_format=float_format,
+                    )
 
                 else:
                     d.replace("", "NULL").fillna("NULL").to_csv(
-                        this_path, sep=sep, mode=mod, index=index, float_format=float_format,
-                        header=(file_misses or mod == "w"))
+                        this_path,
+                        sep=sep,
+                        mode=mod,
+                        index=index,
+                        float_format=float_format,
+                        header=(file_misses or mod == "w"),
+                    )
 
             # --- writing Profiles
             else:  # always merge "Profiles" via dropping duplicates
                 if mod == "a" and not file_misses:
                     d_prof = merge_dataframes(
-                        [read_csv_data(path, sep, i), d], column_to_sort="time",
-                        index_time_str="%d.%m.%Y %H:%M")
+                        [read_csv_data(path, sep, i), d],
+                        column_to_sort="time",
+                        index_time_str="%d.%m.%Y %H:%M",
+                    )
                 else:
                     d_prof = d
-                if d_prof.shape[1] > 1:  # only print if data (not only time column) are available
-                    d_prof = d_prof if nrows is None or d_prof.shape[0] <= nrows else \
-                        d_prof.loc[:nrows-1]
+                if (
+                    d_prof.shape[1] > 1
+                ):  # only print if data (not only time column) are available
+                    d_prof = (
+                        d_prof
+                        if nrows is None or d_prof.shape[0] <= nrows
+                        else d_prof.loc[: nrows - 1]
+                    )
                     d_prof.replace("", "NULL").fillna("NULL").to_csv(
-                        this_path, sep=sep, mode="w", index=False, float_format=float_format)
+                        this_path,
+                        sep=sep,
+                        mode="w",
+                        index=False,
+                        float_format=float_format,
+                    )

@@ -1,14 +1,11 @@
-# Copyright (c) 2019-2021 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
+# Copyright (c) 2019-2026 by University of Kassel, Tu Dortmund, RWTH Aachen University and Fraunhofer
 # Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual
 # contributors (see AUTHORS file for details). All rights reserved.
 
 from simbench import get_voltlvl
 from simbench.converter.csv_pp_converter import _is_pp_type
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -16,22 +13,27 @@ __author__ = "smeinecke"
 
 
 def filter_loadcases_df(data, factors):
-    """ Since SimBench defines different slack voltages and scaling factors of loads for different
-        voltage levels, this function filters unused study case data for the given net.
+    """Since SimBench defines different slack voltages and scaling factors of loads for different
+    voltage levels, this function filters unused study case data for the given net.
     """
     if _is_pp_type(data):
         vn_kvs = data.bus.vn_kv.value_counts()
     else:
         vn_kvs = data["Node"].vmR.value_counts()
-    lv_vn_kv = vn_kvs.loc[vn_kvs > 2].index.min()  # minimum vn_kv which occurs at more than 2 buses
+    lv_vn_kv = vn_kvs.loc[
+        vn_kvs > 2
+    ].index.min()  # minimum vn_kv which occurs at more than 2 buses
     lv_level = get_voltlvl(lv_vn_kv)
-    factors = factors.loc[factors.voltLvl == lv_level].set_index("Study Case").drop(["voltLvl"],
-                                                                                    axis=1)
+    factors = (
+        factors.loc[factors.voltLvl == lv_level]
+        .set_index("Study Case")
+        .drop(["voltLvl"], axis=1)
+    )
     return factors
 
 
 def filter_loadcases(data, factors=None):
-    """ Since SimBench defines different slack voltages and scaling factors of loads for different
+    """Since SimBench defines different slack voltages and scaling factors of loads for different
         voltage levels, this function filters unused study case data for the given net.
 
     INPUT:
