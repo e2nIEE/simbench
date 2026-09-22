@@ -1,6 +1,11 @@
 Change Log
 =============
 
+[1.6.3] - 2026-09-22
+----------------------
+- [ADDED] python 3.14 support
+- [CHANGED] drop python 3.10 support
+
 [1.6.2] - 2026-04-02
 ----------------------
 - [ADDED] python 3.13 support
